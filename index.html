@@ -1,1388 +1,1526 @@
+
 <!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Click2Cash - আয়ের অ্যাপ</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NEBO TOP-UP</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Google Fonts for Bengali -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Noto Sans Bengali', sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #87CEEB, #98FB98);
-            color: #1F2937;
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
+        :root {
+            --primary-purple: #7B61FF;
+            --light-purple: #E9E7FF;
+            --background-color: #F7F7FF;
+            --card-bg-color: #ffffff;
+            --primary-text-color: #2D3748;
+            --secondary-text-color: #718096;
+            --accent-green: #38E4D8;
+            --accent-red: #EF4444;
+            --border-radius-large: 24px;
+            --border-radius-medium: 16px;
+            --soft-shadow: 0 10px 30px rgba(123, 97, 255, 0.09);
+            --font-family: 'Poppins', sans-serif;
         }
 
-        /* Dynamic Background Shapes */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
+        /* ডার্ক মোড স্টাইল */
+        body.dark-mode {
+            --background-color: #1A202C;
+            --card-bg-color: #2D3748;
+            --primary-text-color: #F7FAFC;
+            --secondary-text-color: #A0AEC0;
+            --light-purple: #4A5568;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--primary-text-color);
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .auth-container, .app-container {
+            position: relative; width: 100%; height: 100vh;
+            max-width: 450px; margin: auto; overflow: hidden;
+            background-color: var(--background-color);
+        }
+        .app-container { display: none; }
+
+        .screen {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: var(--background-color);
+            transform: translateX(100%);
+            transition: transform 0.35s ease-in-out;
+            overflow-y: auto; padding: 20px;
+            padding-bottom: 110px;
+        }
+        .screen.active { transform: translateX(0); }
+        #homeScreen, #loginScreen { transform: translateX(0); }
+
+        .auth-container { display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .auth-wrapper { width: 100%; }
+        .auth-logo-container { text-align: center; margin-bottom: 40px; }
+        .auth-logo-container h1 { font-size: 36px; font-weight: 700; color: var(--primary-purple); }
+        .auth-logo-container img { max-height: 60px; max-width: 250px; }
+
+        .auth-form { width: 100%; padding: 30px; border-radius: var(--border-radius-large); background-color: var(--card-bg-color); box-shadow: var(--soft-shadow); }
+        .auth-form h2 { text-align: center; margin-bottom: 25px; font-weight: 600; color: var(--primary-text-color); }
+        .auth-form .input-group { margin-bottom: 20px; }
+        .auth-form .input-group input { width: 100%; padding: 15px; background-color: var(--background-color); border: 1px solid #E2E8F0; border-radius: var(--border-radius-medium); font-size: 16px; color: var(--primary-text-color);}
+        .auth-form .form-link { text-align: center; margin-top: 20px; font-size: 14px; color: var(--secondary-text-color); }
+        .auth-form .form-link span { color: var(--primary-purple); cursor: pointer; font-weight: 600; }
+
+        .section-title { font-size: 20px; font-weight: 600; margin: 25px 0 15px 0; }
+        .btn { display: block; width: 100%; background: var(--primary-purple); color: white; border: none; padding: 16px; border-radius: var(--border-radius-medium); font-size: 16px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.3s; box-shadow: 0 5px 15px rgba(123, 97, 255, 0.3); }
+        .btn:hover { background-color: #6a50e4; transform: translateY(-2px); }
+        .btn-danger { background: var(--accent-red); }
+        .btn-secondary { background: var(--secondary-text-color); }
+        .action-buttons { display: flex; gap: 10px; margin-top: 20px; margin-bottom: 10px;}
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; margin-bottom: 20px; }
+        .header .greeting h3 { font-size: 24px; font-weight: 600; }
+        .header .greeting p { font-size: 16px; color: var(--secondary-text-color); }
+        .header .profile-avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 2px solid var(--primary-purple); }
+        .header-right-icons { display: flex; align-items: center; gap: 15px; }
+
+        .notice-card { background-color: var(--light-purple); border-radius: var(--border-radius-medium); padding: 20px; margin-bottom: 25px; display: flex; align-items: center; }
+        .notice-card i { font-size: 24px; color: var(--primary-purple); margin-right: 15px; }
+        .notice-card p { font-size: 14px; line-height: 1.5; color: var(--primary-text-color); }
+
+        .slider-container { width: 100%; height: 160px; margin-bottom: 25px; border-radius: var(--border-radius-large); overflow: hidden; position: relative; box-shadow: var(--soft-shadow); }
+        .slider { display: flex; height: 100%; transition: transform 0.5s ease-in-out; }
+        .slide { min-width: 100%; height: 100%; }
+        .slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        .game-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .game-card {
+            background: linear-gradient(145deg, #ffffff, #f9f9ff);
+            border-radius: var(--border-radius-large);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--soft-shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        body.dark-mode .game-card { background: var(--card-bg-color); }
+        .game-card:hover { transform: translateY(-5px); }
+        .game-card .icon-wrapper {
+            width: 100%;
+            height: 140px;
+            margin: 0 auto;
+            background-color: var(--card-bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+        .game-card img {
             width: 100%;
             height: 100%;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(135, 206, 235, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(152, 251, 152, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(135, 206, 235, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 60% 60%, rgba(152, 251, 152, 0.2) 0%, transparent 50%);
-            z-index: -1;
+            object-fit: contain;
         }
-
-        /* Glassmorphism Effect */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Button Styles */
-        .btn-primary {
-            background: linear-gradient(135deg, #00CED1, #20B2AA);
-            color: white;
-            border-radius: 16px;
-            padding: 14px 24px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            border: none;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0, 206, 209, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 206, 209, 0.4);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #20B2AA, #40E0D0);
-            color: white;
-            border-radius: 16px;
-            padding: 14px 24px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            border: none;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(32, 178, 170, 0.3);
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(32, 178, 170, 0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #00CED1, #20B2AA);
-            color: white;
-            border-radius: 16px;
-            padding: 14px 24px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            border: none;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0, 206, 209, 0.3);
-        }
-
-        .btn-success:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 206, 209, 0.4);
-        }
-
-        /* Bottom Navigation */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.3);
+        .game-card .game-info-container {
+            padding: 10px 15px 15px 15px;
+            background-color: var(--card-bg-color);
+            flex-grow: 1;
             display: flex;
-            justify-content: space-around;
-            padding: 12px 0;
-            z-index: 100;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+            flex-direction: column;
+            justify-content: center;
         }
+        .game-card .game-name { font-weight: 600; font-size: 15px; margin-bottom: 5px; }
+        .game-card .game-info { font-size: 13px; color: var(--secondary-text-color); }
 
-        .nav-item {
+        .page-header { display: flex; align-items: center; margin-bottom: 20px; }
+        .back-btn { font-size: 22px; cursor: pointer; margin-right: 15px; color: var(--secondary-text-color); }
+        .page-header h2 { font-size: 22px; font-weight: 600; }
+        .game-banner { width: 100%; height: 140px; object-fit: cover; border-radius: var(--border-radius-large); margin-bottom: 20px; }
+        .topup-section { background-color: var(--card-bg-color); border-radius: var(--border-radius-large); padding: 20px; margin-bottom: 20px; box-shadow: var(--soft-shadow); }
+        .title { font-size: 16px; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; }
+        .step-number { background: var(--light-purple); color: var(--primary-purple); border-radius: 50%; width: 30px; height: 30px; display: inline-flex; justify-content: center; align-items: center; font-weight: 700; margin-right: 12px; font-size: 14px; }
+        .input-group input { width: 100%; padding: 14px; background-color: var(--background-color); border: 1px solid #E2E8F0; border-radius: var(--border-radius-medium); color: var(--primary-text-color); font-size: 16px; }
+        body.dark-mode .input-group input { border-color: #4A5568; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px; }
+        
+        .package-grid, .payment-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .package-item { background-color: var(--background-color); border: 2px solid transparent; border-radius: var(--border-radius-medium); padding: 15px; cursor: pointer; transition: all 0.2s; }
+        
+        .payment-item { 
+            padding: 10px;
+            min-height: 100px; 
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 12px;
-            color: #64748b;
-            transition: all 0.3s ease;
-            padding: 8px 12px;
-            border-radius: 16px;
+            justify-content: center;
+            gap: 5px; 
+            background-color: var(--background-color); 
+            border: 2px solid transparent; 
+            border-radius: var(--border-radius-medium); 
+            cursor: pointer; 
+            transition: all 0.2s;
+        }
+        .payment-item:hover, .package-item:hover { transform: scale(1.03); }
+        .package-item.selected, .payment-item.selected { border-color: var(--primary-purple); background-color: var(--light-purple); }
+        
+        .package-item .amount { font-weight: 600; font-size: 16px; text-align: center; }
+        .package-item .price { color: var(--primary-purple); font-weight: 600; font-size: 14px; text-align: center;}
+        
+        .payment-item img { 
+            max-height: 50px; 
+            width: auto;
+            object-fit: contain; 
+        }
+        .payment-item span {
+            font-size: 12px; 
+            font-weight: 500;
+            color: var(--primary-text-color);
+        }
+        body.dark-mode .payment-item span {
+             color: var(--primary-text-color);
         }
 
-        .nav-item.active {
-            color: #00CED1;
-            background: rgba(0, 206, 209, 0.1);
+        /* ওয়ালেট ব্যালেন্স ইনফো স্টাইল */
+        .wallet-balance-info {
+            background-color: var(--light-purple);
+            padding: 15px;
+            border-radius: var(--border-radius-medium);
+            margin-top: 15px;
+            text-align: center;
+            border: 1px solid var(--primary-purple);
+        }
+        .wallet-balance-info p {
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: var(--primary-text-color);
         }
 
-        .nav-item i {
-            font-size: 20px;
-            margin-bottom: 4px;
+        .profile-card { text-align: center; margin-bottom: 25px; }
+        .profile-avatar-large { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; margin: 0 auto 15px; border: 4px solid var(--primary-purple); box-shadow: var(--soft-shadow); }
+        .profile-name { font-size: 22px; font-weight: 600; }
+        .profile-id { font-size: 14px; color: var(--secondary-text-color); margin-top: 4px; }
+
+        .wallet-card { background: linear-gradient(135deg, var(--primary-purple), #9f8eff); color: white; padding: 30px; border-radius: var(--border-radius-large); text-align: center; margin-bottom: 25px; }
+        .wallet-card p { font-size: 16px; opacity: 0.8; }
+        .wallet-card h1 { font-size: 44px; margin: 10px 0; }
+        .wallet-card .btn { background: rgba(255,255,255,0.2); box-shadow: none; width: auto; padding: 12px 25px; margin-top: 10px; }
+
+        .profile-menu-item { display: flex; align-items: center; background-color: var(--card-bg-color); padding: 18px 20px; margin-bottom: 12px; border-radius: var(--border-radius-medium); cursor: pointer; box-shadow: var(--soft-shadow); transition: all 0.2s; }
+        .profile-menu-item:hover { transform: translateX(5px); background-color: var(--light-purple); }
+        .profile-menu-item i { width: 30px; margin-right: 15px; text-align: center; font-size: 18px; color: var(--primary-purple); }
+        .profile-menu-item span { font-weight: 500; }
+
+        .details-card { background-color: var(--card-bg-color); border-radius: var(--border-radius-large); padding: 25px; text-align: center; box-shadow: var(--soft-shadow); }
+        .details-card .icon { font-size: 50px; color: var(--accent-green); margin-bottom: 15px; }
+        .details-card h2 { font-size: 24px; margin-bottom: 10px; }
+        .details-card p { color: var(--secondary-text-color); margin-bottom: 25px; }
+        .summary { text-align: left; }
+        .summary-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #eee; }
+        body.dark-mode .summary-item { border-color: #4A5568; }
+        .summary-item:last-child { border-bottom: none; }
+        .summary-item span { color: var(--secondary-text-color); }
+        .summary-item strong { color: var(--primary-text-color); }
+
+        .bottom-nav { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; display: flex; justify-content: space-around; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); padding: 10px 0; border-radius: var(--border-radius-large); box-shadow: 0 10px 40px rgba(123, 97, 255, 0.2); z-index: 1000; border: 1px solid rgba(255,255,255,0.3); }
+        body.dark-mode .bottom-nav { background-color: rgba(45, 55, 72, 0.8); border-color: rgba(255, 255, 255, 0.1); }
+        .nav-item { cursor: pointer; display: flex; flex-direction: column; align-items: center; color: var(--secondary-text-color); flex: 1; position: relative; }
+        .nav-item i { font-size: 22px; margin-bottom: 4px; transition: all 0.3s; }
+        .nav-item span { font-size: 11px; font-weight: 500; }
+        .nav-item.active { color: var(--primary-purple); }
+        .nav-item-center { margin-top: -25px; }
+        .nav-item-center .icon-bg { width: 55px; height: 55px; background: var(--primary-purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(123, 97, 255, 0.4); margin-bottom: 8px; border: 4px solid var(--background-color); }
+        .nav-item-center .icon-bg i { color: white; font-size: 22px; margin: 0; }
+
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; color: white; }
+        .status-Pending { background-color: #F59E0B; }
+        .status-Approved, .status-Completed { background-color: #10B981; }
+        .status-Rejected, .status-Canceled { background-color: var(--accent-red); }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--secondary-text-color);
+        }
+        .empty-state i {
+            font-size: 60px;
+            margin-bottom: 20px;
+            display: block;
+            color: var(--light-purple);
+        }
+        .empty-state p {
+            font-size: 16px;
+            font-weight: 500;
         }
 
-        /* Wheel Styles */
-        .wheel-container {
-            position: relative;
-            width: 280px;
-            height: 280px;
-            margin: 0 auto;
-        }
+        .theme-switch-container { display: flex; justify-content: space-between; align-items: center; }
+        .theme-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .theme-switch input { opacity: 0; width: 0; height: 0; }
+        .slider-track { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px; }
+        .slider-track:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider-track { background-color: var(--primary-purple); }
+        input:checked + .slider-track:before { transform: translateX(22px); }
 
-        .wheel {
-            width: 100%;
-            height: 100%;
+        .support-fab {
+            position: fixed;
+            bottom: 100px; /* কিছুটা উপরে নেয়া হয়েছে */
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-purple);
+            color: white;
             border-radius: 50%;
-            position: relative;
-            overflow: hidden;
-            transition: transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .wheel-section {
-            position: absolute;
-            width: 50%;
-            height: 50%;
-            transform-origin: bottom right;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1001;
         }
-
-        .wheel-pointer {
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 30px;
-            height: 30px;
-            background: #00CED1;
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-            z-index: 10;
-            box-shadow: 0 4px 15px rgba(0, 206, 209, 0.3);
-        }
-
-        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
-            top: 0;
+            z-index: 1002;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
+            overflow: hidden;
+            background-color: rgba(0,0,0,0.4);
             justify-content: center;
             align-items: center;
-            backdrop-filter: blur(5px);
         }
-
         .modal-content {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 24px;
-            padding: 24px;
+            background-color: var(--card-bg-color);
+            padding: 20px;
+            border-radius: var(--border-radius-large);
             width: 90%;
             max-width: 400px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            animation: modalAppear 0.3s ease-out;
+            box-shadow: var(--soft-shadow);
         }
-
-        @keyframes modalAppear {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        /* Notification Panel */
-        .notification-panel {
-            position: fixed;
-            top: 0;
-            right: -320px;
-            width: 300px;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-left: 1px solid rgba(255, 255, 255, 0.3);
-            transition: right 0.3s ease;
-            z-index: 1000;
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .notification-panel.active {
-            right: 0;
-        }
-
-        /* Content Sections */
-        .content-section {
-            display: none;
-        }
-
-        .content-section.active {
-            display: block;
-        }
-
-        /* Progress Bar */
-        .progress-bar {
-            width: 100%;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .progress {
-            height: 100%;
-            background: linear-gradient(90deg, #00CED1, #20B2AA);
-            border-radius: 5px;
-            transition: width 0.3s ease;
-        }
-
-        /* Task Items */
-        .task-item {
+        .modal-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 16px;
-            margin-bottom: 12px;
-            background: rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .task-item:hover {
-            background: rgba(255, 255, 255, 0.4);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Auth Pages */
-        .auth-container {
-            display: flex;
-            justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-            background: linear-gradient(135deg, #87CEEB, #98FB98);
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
         }
+        body.dark-mode .modal-header { border-color: #4A5568; }
+        .modal-header h2 { font-size: 20px; }
+        .close-btn { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
 
-        .auth-card {
-            width: 100%;
-            max-width: 400px;
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.25);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        /* Support Chat Modal */
+        #supportModal .modal-content {
+            display: flex; flex-direction: column; height: 70vh;
         }
+        .support-chat-body {
+            flex-grow: 1; overflow-y: auto; padding: 10px 0;
+        }
+        .support-chat-footer {
+            display: flex; border-top: 1px solid #eee; padding-top: 10px;
+        }
+        body.dark-mode .support-chat-footer { border-color: #4A5568; }
+        #supportMessageInput {
+            flex-grow: 1; border: none; background: transparent; padding: 10px; color: var(--primary-text-color);
+        }
+        #supportMessageInput:focus { outline: none; }
+        #sendMessageBtn {
+            background: var(--primary-purple); color: white; border: none;
+            width: 40px; height: 40px; border-radius: 50%; font-size: 16px; cursor: pointer;
+        }
+        .message {
+            padding: 8px 12px; border-radius: 16px; margin-bottom: 8px; max-width: 80%;
+            word-wrap: break-word;
+        }
+        .message a { color: inherit; text-decoration: underline; }
+        .message.user {
+            background-color: var(--primary-purple); color: white; align-self: flex-end;
+            border-bottom-right-radius: 4px; margin-left: auto;
+        }
+        .message.admin {
+            background-color: var(--light-purple); color: var(--primary-text-color); align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+         .message-container { display: flex; flex-direction: column; }
 
-        /* Input Fields */
-        input, select {
-            background: rgba(255, 255, 255, 0.7) !important;
-            backdrop-filter: blur(10px);
-            border-radius: 12px !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-            transition: all 0.3s ease;
+        /* Popup Modal */
+        #dynamicPopup .modal-content {
+            text-align: center;
+            border-radius: var(--border-radius-medium); /* বর্ডার কমানো হয়েছে */
         }
+        #popupImage {
+            width: 100%; max-height: 200px; object-fit: cover;
+            border-radius: var(--border-radius-medium); margin-top: 15px; display: none;
+        }
+        #popupMessage { margin-top: 15px; color: var(--secondary-text-color); }
 
-        input:focus, select:focus {
-            background: rgba(255, 255, 255, 0.9) !important;
-            border-color: #00CED1 !important;
-            box-shadow: 0 0 0 3px rgba(0, 206, 209, 0.2) !important;
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
         }
-
-        /* Header */
-        header {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        /* Quick Actions Grid */
-        .quick-action-btn {
-            background: rgba(255, 255, 255, 0.3);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
-            padding: 16px;
-        }
-
-        .quick-action-btn:hover {
-            background: rgba(255, 255, 255, 0.4);
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 480px) {
-            .wheel-container {
-                width: 250px;
-                height: 250px;
-            }
-            
-            .notification-panel {
-                width: 85%;
-                right: -85%;
-            }
-        }
+        .status-indicator.online { background-color: #D1FAE5; color: #065F46; }
+        .status-indicator.offline { background-color: #FEE2E2; color: #991B1B; }
+        .status-indicator .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .status-indicator.online .dot { background-color: #10B981; }
+        .status-indicator.offline .dot { background-color: #EF4444; }
     </style>
 </head>
-<body class="pb-24">
-    <!-- Auth Pages -->
-    <div id="auth-section" class="auth-container">
-        <div class="auth-card">
-            <!-- Login Form -->
-            <div id="login-form">
-                <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">লগ ইন করুন</h2>
-                <form id="login-form-element">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">ইমেইল</label>
-                        <input type="email" id="login-email" class="w-full p-3 rounded-lg focus:border-cyan-500" required>
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-gray-700 mb-2">পাসওয়ার্ড</label>
-                        <input type="password" id="login-password" class="w-full p-3 rounded-lg focus:border-cyan-500" required>
-                    </div>
-                    <button type="submit" class="btn-primary w-full py-3 mb-4">
-                        লগ ইন
-                    </button>
-                </form>
-                <p class="text-center text-gray-600">
-                    অ্যাকাউন্ট নেই? 
-                    <a href="#" id="show-register" class="text-cyan-600 hover:underline">রেজিস্টার করুন</a>
-                </p>
-            </div>
+<body>
 
-            <!-- Register Form -->
-            <div id="register-form" class="hidden">
-                <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">রেজিস্টার করুন</h2>
-                <form id="register-form-element">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">পুরো নাম</label>
-                        <input type="text" id="register-name" class="w-full p-3 rounded-lg focus:border-cyan-500" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">ইমেইল</label>
-                        <input type="email" id="register-email" class="w-full p-3 rounded-lg focus:border-cyan-500" required>
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-gray-700 mb-2">পাসওয়ার্ড</label>
-                        <input type="password" id="register-password" class="w-full p-3 rounded-lg focus:border-cyan-500" required>
-                    </div>
-                    <button type="submit" class="btn-primary w-full py-3 mb-4">
-                        রেজিস্টার
-                    </button>
-                </form>
-                <p class="text-center text-gray-600">
-                    ইতিমধ্যে অ্যাকাউন্ট আছে? 
-                    <a href="#" id="show-login" class="text-cyan-600 hover:underline">লগ ইন করুন</a>
-                </p>
+    <div class="auth-container">
+        <div class="screen active" id="loginScreen">
+            <div class="auth-wrapper">
+                <div class="auth-logo-container">
+                    <h1 id="authLogoText">Nebo Top-Up</h1>
+                </div>
+                <div class="auth-form">
+                    <h2>স্বাগতম!</h2>
+                    <div class="input-group"> <input type="email" id="loginEmail" placeholder="আপনার ইমেইল"> </div>
+                    <div class="input-group"> <input type="password" id="loginPassword" placeholder="আপনার পাসওয়ার্ড"> </div>
+                    <button class="btn" onclick="handleLogin()">লগইন করুন</button>
+                    <p class="form-link">অ্যাকাউন্ট নেই? <span onclick="toggleAuthScreens('signUpScreen')">সাইন আপ করুন</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="screen" id="signUpScreen">
+             <div class="auth-wrapper">
+                 <div class="auth-logo-container">
+                    <h1 id="authLogoTextSignUp">Nebo TopUp</h1>
+                </div>
+                <div class="auth-form">
+                    <h2>নতুন অ্যাকাউন্ট তৈরি করুন</h2>
+                    <div class="input-group"> <input type="text" id="signUpName" placeholder="আপনার সম্পূর্ণ নাম"> </div>
+                    <div class="input-group"> <input type="email" id="signUpEmail" placeholder="আপনার ইমেইল"> </div>
+                    <div class="input-group"> <input type="password" id="signUpPassword" placeholder="নতুন পাসওয়ার্ড দিন"> </div>
+                    <button class="btn" onclick="handleSignUp()">সাইন আপ</button>
+                    <p class="form-link"> ইতোমধ্যে অ্যাকাউন্ট আছে? <span onclick="toggleAuthScreens('loginScreen')">লগইন করুন</span></p>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Main App (Hidden Initially) -->
-    <div id="main-app" class="hidden">
-        <!-- Header -->
-        <header class="p-4 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-800">Click2Cash</h1>
-                <p class="text-gray-600">আপনার আয়ের পথ</p>
+    <div class="app-container">
+        <!-- Screen 1: Home Page -->
+        <div class="screen active" id="homeScreen">
+            <header class="header">
+                <div class="greeting">
+                    <h3 id="greetingName">স্বাগতম!</h3>
+                    <p>আপনার পছন্দের গেমটি বেছে নিন</p>
+                </div>
+                <div class="header-right-icons">
+                     <div id="onlineStatus" class="status-indicator offline">
+                        <span class="dot"></span>
+                        <span id="onlineStatusText">Offline</span>
+                    </div>
+                    <img id="headerProfileAvatar" src="" alt="Avatar" class="profile-avatar" style="display: none;" onclick="showScreen('profileScreen', document.querySelectorAll('.nav-item')[4])">
+                </div>
+            </header>
+
+            <div class="slider-container">
+                <div class="slider">
+                    <!-- Dynamic slider images will be loaded here -->
+                </div>
             </div>
-            <div class="flex items-center space-x-4">
-                <div class="relative">
-                    <button id="notification-btn" class="text-2xl text-gray-600">
-                        <i class="fas fa-bell"></i>
-                    </button>
-                    <span id="notification-badge" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center hidden">0</span>
+             <div class="notice-card" id="noticeCardContainer" style="display: none;">
+                <i class="fa-solid fa-bullhorn"></i>
+                <p id="noticeCardText"></p>
+            </div>
+            <h2 class="section-title">জনপ্রিয় গেমসমূহ</h2>
+            <div class="game-grid"></div>
+        </div>
+
+        <!-- Screen 2: Top-Up Page -->
+        <div class="screen" id="topupScreen">
+            <header class="page-header"><i class="fa-solid fa-arrow-left back-btn" onclick="showScreen('homeScreen', document.querySelector('.nav-item'))"></i><h2 id="gameTitle"></h2></header>
+            <img id="gameBanner" src="" alt="Game Banner" class="game-banner">
+            <div class="topup-section">
+                <h3 class="title"><span class="step-number">1</span>আপনার প্লেয়ার আইডি দিন</h3>
+                <div class="input-group"><input type="text" id="playerId" placeholder="এখানে প্লেয়ার আইডি লিখুন"></div>
+            </div>
+            <div class="topup-section">
+                <h3 class="title"><span class="step-number">2</span>রিচার্জ অ্যামাউন্ট বেছে নিন</h3>
+                <div class="package-grid" id="packageGrid"></div>
+            </div>
+            <div class="topup-section">
+                <h3 class="title"><span class="step-number">3</span>পেমেন্ট মেথড বেছে নিন</h3>
+                <div class="payment-grid" id="topupPaymentGrid">
+                    <!-- Payment methods will be loaded here dynamically -->
                 </div>
-                <div class="text-right">
-                    <p id="user-name" class="font-semibold text-gray-800">ব্যবহারকারী</p>
-                    <p class="text-sm text-gray-600">ব্যালেন্স: ৳<span id="header-balance">0.00</span></p>
+                 <div id="paymentDetailsSection" style="display: none; margin-top: 20px;">
+                    <!-- Payment input fields will be injected here -->
                 </div>
             </div>
-        </header>
+            <button class="btn" onclick="processOrder()">এখুনি কিনুন</button>
+        </div>
 
-        <!-- Main Content -->
-        <main class="p-4 max-w-lg mx-auto">
-            <!-- Home Section -->
-            <section id="home" class="content-section active">
-                <!-- Balance Card -->
-                <div class="glass-card p-6 mb-6 text-center">
-                    <h2 class="text-lg text-gray-600 mb-2">আপনার বর্তমান ব্যালেন্স</h2>
-                    <p class="text-5xl font-bold text-gray-800 tracking-widest">৳<span id="wallet-balance">0.00</span></p>
-                    <div class="mt-4 flex justify-around text-sm">
-                        <div>
-                            <p class="text-gray-600">আজকের আয়</p>
-                            <p class="font-bold text-gray-800">৳<span id="today-earnings">0.00</span></p>
-                        </div>
-                        <div>
-                            <p class="text-gray-600">রেফারেল</p>
-                            <p class="font-bold text-gray-800"><span id="referral-count">0</span> জন</p>
-                        </div>
+        <!-- Screen 3: Wallet Screen -->
+        <div class="screen" id="walletScreen">
+            <header class="page-header"><h2 style="margin: auto;">আমার ওয়ালেট</h2></header>
+            <div class="wallet-card">
+                <p>আপনার বর্তমান ব্যালেন্স</p>
+                <h1 id="profileWalletBalance">৳ 0.00</h1>
+                 <button class="btn" onclick="showScreen('addMoneyScreen', document.querySelectorAll('.nav-item')[2])">অ্যাড মানি</button>
+            </div>
+            <div class="topup-section">
+                <h3 class="title">মানি রিকোয়েস্ট হিস্টোরি</h3>
+                <div id="moneyRequestHistory"></div>
+            </div>
+        </div>
+
+        <!-- Screen 4: Add Money Screen -->
+        <div class="screen" id="addMoneyScreen">
+             <header class="page-header"><i class="fa-solid fa-arrow-left back-btn" onclick="showScreen('walletScreen', document.querySelectorAll('.nav-item')[1])"></i><h2>অ্যাড মানি</h2></header>
+             <div class="topup-section">
+                <h3 class="title"><span class="step-number">1</span>অ্যামাউন্ট লিখুন</h3>
+                <div class="input-group"> <input type="number" id="addMoneyAmount" placeholder="e.g., 500"> </div>
+            </div>
+            <div class="topup-section">
+                <h3 class="title"><span class="step-number">2</span>পেমেন্ট মেথড বেছে নিন</h3>
+                <div class="payment-grid" id="addMoneyPaymentGrid">
+                    <!-- Add Money payment methods will be loaded here dynamically -->
+                </div>
+                 <div id="addMoneyPaymentDetailsSection" style="display: none; margin-top: 20px;">
+                    <p style="text-align: center; font-weight: 600; margin-bottom: 10px;">
+                        নিচের নম্বরে টাকা পাঠান: <strong id="addMoneyAdminPaymentNumber" style="color: var(--primary-purple); font-size: 18px;"></strong>
+                    </p>
+                    <div class="input-group" style="margin-top: 15px;">
+                        <label for="addMoneyUserPaymentNumber">আপনার পেমেন্ট নম্বর</label>
+                        <input type="tel" id="addMoneyUserPaymentNumber" placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন">
                     </div>
-                    <button id="withdraw-btn" class="btn-primary mt-6 w-full">
-                        <i class="fas fa-money-bill-wave mr-2"></i> টাকা তুলুন
-                    </button>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="grid grid-cols-2 gap-4 mb-6">
-                    <button id="watch-ad-btn" class="quick-action-btn flex flex-col items-center justify-center">
-                        <i class="fas fa-video text-3xl mb-2 text-cyan-500"></i>
-                        <span class="font-semibold text-gray-800">বিজ্ঞাপন দেখুন</span>
-                        <span class="text-xs text-gray-600 mt-1">৳০.১০ আয় করুন</span>
-                    </button>
-                    <button id="tasks-btn" class="quick-action-btn flex flex-col items-center justify-center">
-                        <i class="fas fa-tasks text-3xl mb-2 text-cyan-500"></i>
-                        <span class="font-semibold text-gray-800">টাস্ক করুন</span>
-                        <span class="text-xs text-gray-600 mt-1">৳০.৫০ - ৳৩.০০ আয় করুন</span>
-                    </button>
-                    <button id="spin-btn" class="quick-action-btn flex flex-col items-center justify-center">
-                        <i class="fas fa-dharmachakra text-3xl mb-2 text-cyan-500"></i>
-                        <span class="font-semibold text-gray-800">স্পিন অ্যান্ড উইন</span>
-                        <span class="text-xs text-gray-600 mt-1">৳০ - ৳১০ জিতুন</span>
-                    </button>
-                    <button id="refer-btn" class="quick-action-btn flex flex-col items-center justify-center">
-                        <i class="fas fa-user-plus text-3xl mb-2 text-cyan-500"></i>
-                        <span class="font-semibold text-gray-800">রেফার করুন</span>
-                        <span class="text-xs text-gray-600 mt-1">৳৫.০০ বোনাস পান</span>
-                    </button>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="glass-card p-6">
-                    <h3 class="text-xl font-bold mb-4 flex items-center text-gray-800">
-                        <i class="fas fa-history mr-3 text-cyan-500"></i>সাম্প্রতিক কার্যক্রম
-                    </h3>
-                    <div id="recent-activity" class="space-y-3">
-                        <!-- Activities will be populated by JavaScript -->
-                        <p class="text-center text-gray-600 py-4">কোনো সাম্প্রতিক কার্যক্রম নেই</p>
+                    <div class="input-group">
+                        <label for="addMoneyTransactionId">ট্রানজেকশন আইডি</label>
+                        <input type="text" id="addMoneyTransactionId" placeholder="টাকা পাঠানোর পর প্রাপ্ত আইডি">
                     </div>
                 </div>
-            </section>
+            </div>
+            <button class="btn" onclick="processAddMoneyRequest()">রিকোয়েস্ট করুন</button>
+        </div>
 
-            <!-- Tasks Section -->
-            <section id="tasks" class="content-section">
-                <div class="glass-card p-6">
-                    <h2 class="text-2xl font-bold mb-4 flex items-center text-gray-800">
-                        <i class="fas fa-tasks mr-3 text-cyan-500"></i>ডেইলি টাস্ক
-                    </h2>
-                    <p class="text-gray-600 mb-6">টাস্ক সম্পন্ন করে অর্থ উপার্জন করুন</p>
-                    
-                    <div id="tasks-list" class="space-y-4">
-                        <!-- Tasks will be populated by JavaScript -->
+        <!-- Screen 5: Profile Page -->
+        <div class="screen" id="profileScreen">
+            <header class="page-header"><h2 style="margin: auto;">প্রোফাইল</h2></header>
+            <div class="profile-card">
+                <img id="profileScreenAvatar" src="https://i.ibb.co/74CkxSP/avatar.png" alt="User Avatar" class="profile-avatar-large">
+                <h3 class="profile-name" id="profileNameDisplay"></h3>
+                <p class="profile-id" id="profileIdDisplay"></p>
+            </div>
+
+            <div class="profile-menu">
+                <div class="profile-menu-item" onclick="showScreen('walletScreen', document.querySelectorAll('.nav-item')[1])"><i class="fa-solid fa-wallet"></i><span>ওয়ালেট</span></div>
+                <div class="profile-menu-item" onclick="showOrderHistoryScreen(document.querySelectorAll('.nav-item')[3])"><i class="fa-solid fa-receipt"></i><span>অর্ডার হিস্টোরি</span></div>
+                <div class="profile-menu-item" onclick="toggleSettings()"><i class="fa-solid fa-cogs"></i><span>সেটিংস</span></div>
+                <div class="profile-menu-item" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i><span>লগ আউট</span></div>
+            </div>
+            
+            <!-- নতুন সেটিংস সেকশন -->
+            <div id="settingsSection" style="display: none; margin-top: 15px;">
+                <div class="topup-section">
+                    <h3 class="title">থিম পরিবর্তন করুন</h3>
+                    <div class="theme-switch-container">
+                        <span>ডার্ক মোড</span>
+                        <label class="theme-switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="slider-track"></span>
+                        </label>
                     </div>
                 </div>
-            </section>
+            </div>
+        </div>
 
-            <!-- Spin Section -->
-            <section id="spin" class="content-section">
-                <div class="glass-card p-6 text-center">
-                    <h2 class="text-2xl font-bold mb-2 text-gray-800">স্পিন অ্যান্ড উইন</h2>
-                    <p class="text-gray-600 mb-6">আপনার আজকের স্পিন: <span id="spins-left">3</span>/3</p>
-                    
-                    <div class="wheel-container mb-6">
-                        <div class="wheel-pointer"></div>
-                        <div class="wheel" id="wheel">
-                            <div class="wheel-section" style="background-color: #ff6b6b; transform: rotate(0deg);">৳0</div>
-                            <div class="wheel-section" style="background-color: #4ecdc4; transform: rotate(60deg);">৳0.5</div>
-                            <div class="wheel-section" style="background-color: #ffd166; transform: rotate(120deg);">৳1</div>
-                            <div class="wheel-section" style="background-color: #06d6a0; transform: rotate(180deg);">৳2</div>
-                            <div class="wheel-section" style="background-color: #118ab2; transform: rotate(240deg);">৳5</div>
-                            <div class="wheel-section" style="background-color: #ef476f; transform: rotate(300deg);">৳10</div>
-                        </div>
-                    </div>
-                    
-                    <button id="spin-wheel-btn" class="btn-secondary w-full py-3 text-lg">
-                        স্পিন করুন
-                    </button>
-                    
-                    <div class="mt-6 text-left">
-                        <h3 class="font-bold mb-2 text-gray-800">পুরস্কার:</h3>
-                        <ul class="text-gray-600 space-y-1">
-                            <li>• ৳০.৫০ - ৳১০ পর্যন্ত জিততে পারেন</li>
-                            <li>• প্রতিদিন ৩ বার স্পিন করতে পারেন</li>
-                            <li>• পুরস্কার সরাসরি ব্যালেন্সে যোগ হবে</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
+         <!-- Screen 6: Order History -->
+        <div class="screen" id="orderHistoryScreen">
+            <header class="page-header"><h2 style="margin: auto;">মাই অর্ডার</h2></header>
+            <div id="orderHistoryContainer"></div>
+        </div>
 
-            <!-- Wallet Section -->
-            <section id="wallet" class="content-section">
-                <div class="glass-card p-6">
-                    <h2 class="text-2xl font-bold mb-6 flex items-center text-gray-800">
-                        <i class="fas fa-wallet mr-3 text-cyan-500"></i>আমার ওয়ালেট
-                    </h2>
-                    
-                    <div class="mb-6 p-4 bg-gradient-to-r from-cyan-100 to-cyan-200 rounded-xl">
-                        <p class="text-gray-600">মোট ব্যালেন্স</p>
-                        <p class="text-4xl font-bold my-2 text-gray-800">৳<span id="wallet-total">0.00</span></p>
-                        <p class="text-sm text-gray-600">ন্যূনতম উত্তোলন: ৳৫০.০০</p>
-                    </div>
-                    
-                    <div class="space-y-4 mb-6">
-                        <div class="flex justify-between items-center p-3 bg-white/70 rounded-lg border border-white/30">
-                            <div>
-                                <p class="font-semibold text-gray-800">আজকের আয়</p>
-                                <p class="text-sm text-gray-600">বিজ্ঞাপন, টাস্ক এবং স্পিন থেকে</p>
-                            </div>
-                            <p class="text-xl font-bold text-green-500">৳<span id="wallet-today">0.00</span></p>
-                        </div>
-                        
-                        <div class="flex justify-between items-center p-3 bg-white/70 rounded-lg border border-white/30">
-                            <div>
-                                <p class="font-semibold text-gray-800">রেফারেল আয়</p>
-                                <p class="text-sm text-gray-600">রেফারেল থেকে প্রাপ্ত বোনাস</p>
-                            </div>
-                            <p class="text-xl font-bold text-cyan-500">৳<span id="wallet-referral">0.00</span></p>
-                        </div>
-                    </div>
-                    
-                    <button id="wallet-withdraw-btn" class="btn-primary w-full py-3">
-                        <i class="fas fa-money-bill-wave mr-2"></i> টাকা উত্তোলন করুন
-                    </button>
-                </div>
-            </section>
+        <!-- Screen 7: Order Details Success Page -->
+        <div class="screen" id="orderDetailsScreen">
+             <header class="page-header"><i class="fa-solid fa-arrow-left back-btn" onclick="showOrderHistoryScreen(document.querySelectorAll('.nav-item')[3])"></i><h2>অর্ডার সম্পন্ন হয়েছে</h2></header>
+             <div id="orderDetailsContainer"></div>
+        </div>
 
-            <!-- Profile Section -->
-            <section id="profile" class="content-section">
-                <div class="glass-card p-6">
-                    <h2 class="text-2xl font-bold mb-6 flex items-center text-gray-800">
-                        <i class="fas fa-user mr-3 text-cyan-500"></i>আমার প্রোফাইল
-                    </h2>
-                    
-                    <div class="flex items-center mb-6">
-                        <div class="w-16 h-16 rounded-full bg-gradient-to-r from-cyan-500 to-cyan-300 flex items-center justify-center text-white text-2xl font-bold mr-4">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div>
-                            <p id="profile-name" class="font-bold text-xl text-gray-800">ব্যবহারকারী</p>
-                            <p class="text-gray-600">সদস্য since <span id="join-date">আজ</span></p>
-                        </div>
-                    </div>
-                    
-                    <div class="space-y-4 mb-6">
-                        <div class="p-4 bg-white/70 rounded-lg border border-white/30">
-                            <p class="text-gray-600 mb-1">আপনার রেফারেল লিঙ্ক</p>
-                            <div class="flex">
-                                <input type="text" id="referral-link" class="flex-grow p-2 bg-gray-100 rounded-l-lg border border-gray-300" readonly>
-                                <button id="copy-link" class="bg-cyan-500 text-white px-4 rounded-r-lg">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                            <p class="text-sm text-gray-600 mt-2">এই লিঙ্ক শেয়ার করুন এবং প্রতিটি রেফারেলের জন্য ৳৫ পান</p>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="p-3 bg-white/70 rounded-lg border border-white/30 text-center">
-                                <p class="text-2xl font-bold text-cyan-500" id="profile-tasks">0</p>
-                                <p class="text-gray-600 text-sm">সম্পন্ন টাস্ক</p>
-                            </div>
-                            <div class="p-3 bg-white/70 rounded-lg border border-white/30 text-center">
-                                <p class="text-2xl font-bold text-green-500" id="profile-referrals">0</p>
-                                <p class="text-gray-600 text-sm">রেফারেল</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button id="logout-btn" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-colors">
-                        <i class="fas fa-sign-out-alt mr-2"></i>লগ আউট
-                    </button>
-                </div>
-            </section>
-        </main>
+        <!-- Screen 8: Money Request Success Page -->
+        <div class="screen" id="moneyRequestSuccessScreen">
+            <header class="page-header"><i class="fa-solid fa-arrow-left back-btn" onclick="showScreen('walletScreen', document.querySelectorAll('.nav-item')[1])"></i><h2>রিকোয়েস্ট পাঠানো হয়েছে</h2></header>
+            <div id="moneyRequestSuccessContainer"></div>
+        </div>
 
-        <!-- Bottom Navigation -->
         <nav class="bottom-nav">
-            <a href="#" class="nav-item active" data-section="home">
-                <i class="fas fa-home"></i>
-                <span>হোম</span>
-            </a>
-            <a href="#" class="nav-item" data-section="tasks">
-                <i class="fas fa-tasks"></i>
-                <span>টাস্ক</span>
-            </a>
-            <a href="#" class="nav-item" data-section="spin">
-                <i class="fas fa-dharmachakra"></i>
-                <span>স্পিন</span>
-            </a>
-            <a href="#" class="nav-item" data-section="wallet">
-                <i class="fas fa-wallet"></i>
-                <span>ওয়ালেট</span>
-            </a>
-            <a href="#" class="nav-item" data-section="profile">
-                <i class="fas fa-user"></i>
-                <span>প্রোফাইল</span>
-            </a>
+            <div class="nav-item active" onclick="showScreen('homeScreen', this)"> <i class="fa-solid fa-house"></i> <span>হোম</span> </div>
+            <div class="nav-item" onclick="showOrderHistoryScreen(this)"> <i class="fa-solid fa-receipt"></i> <span>অর্ডার</span> </div>
+            <div class="nav-item nav-item-center" onclick="showScreen('addMoneyScreen', this)"> <div class="icon-bg"><i class="fa-solid fa-plus"></i></div> <span>অ্যাড মানি</span> </div>
+            <div class="nav-item" onclick="showScreen('walletScreen', this)"> <i class="fa-solid fa-wallet"></i> <span>ওয়ালেট</span> </div>
+            <div class="nav-item" onclick="showScreen('profileScreen', this)"> <i class="fa-regular fa-user"></i> <span>প্রোফাইল</span> </div>
         </nav>
+        
+        <div class="support-fab" id="supportBtn"><i class="fa-solid fa-headset"></i></div>
 
-        <!-- Withdraw Modal -->
-        <div id="withdraw-modal" class="modal">
+        <!-- Support Chat Modal -->
+        <div id="supportModal" class="modal">
             <div class="modal-content">
-                <h2 class="text-xl font-bold mb-4 text-center text-gray-800">টাকা উত্তোলন করুন</h2>
-                <form id="withdraw-form">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">আপনার নাম</label>
-                        <input type="text" id="withdraw-name" class="w-full p-3 rounded-lg focus:border-cyan-500" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">পেমেন্ট মেথড</label>
-                        <select id="withdraw-method" class="w-full p-3 rounded-lg focus:border-cyan-500" required>
-                            <option value="bKash">bKash</option>
-                            <option value="Nagad">Nagad</option>
-                            <option value="Rocket">Rocket</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">মোবাইল নম্বর</label>
-                        <input type="text" id="withdraw-number" class="w-full p-3 rounded-lg focus:border-cyan-500" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 mb-2">পরিমাণ (৳)</label>
-                        <input type="text" id="withdraw-amount" class="w-full p-3 rounded-lg focus:border-cyan-500" readonly>
-                    </div>
-                    <div class="flex justify-between mt-6">
-                        <button type="button" id="cancel-withdraw" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg">বাতিল</button>
-                        <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg">জমা দিন</button>
-                    </div>
-                </form>
+                <div class="modal-header">
+                    <h2>সাপোর্ট চ্যাট</h2>
+                    <span class="close-btn" id="supportCloseBtn">&times;</span>
+                </div>
+                <div class="support-chat-body" id="supportChatBody">
+                    <!-- Messages will be loaded here -->
+                </div>
+                <div class="support-chat-footer">
+                    <input type="text" id="supportMessageInput" placeholder="আপনার মেসেজ লিখুন...">
+                    <button id="sendMessageBtn"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
             </div>
         </div>
 
-        <!-- Notification Panel -->
-        <div class="notification-panel">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-gray-800">নোটিফিকেশন</h2>
-                <button id="close-notification" class="text-2xl text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div id="notification-list" class="space-y-4">
-                <!-- Notifications will be populated by JavaScript -->
-                <p class="text-center text-gray-600 py-8">কোনো নোটিফিকেশন নেই</p>
+        <!-- Dynamic Popup Modal -->
+        <div id="dynamicPopup" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="popupTitle"></h2>
+                    <span class="close-btn" id="popupCloseBtn">&times;</span>
+                </div>
+                <img id="popupImage" src="" alt="Popup Image">
+                <p id="popupMessage"></p>
             </div>
         </div>
+
     </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage-compat.js"></script>
 
     <script>
-        // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyAdqZJ_ydfy05zqmJ4uauR_HluPTJDTv3s",
-            authDomain: "click2cash-89436.firebaseapp.com",
-            databaseURL: "https://click2cash-89436-default-rtdb.firebaseio.com",
-            projectId: "click2cash-89436",
-            storageBucket: "click2cash-89436.firebasestorage.app",
-            messagingSenderId: "884760732782",
-            appId: "1:884760732782:web:44680c2b4eabd2ae1cb27f"
-        };
+  apiKey: "AIzaSyBaXt7e0mNy0d5H9il7k1K8vOM6pCIgM-k",
+  authDomain: "nebo-topup.firebaseapp.com",
+  databaseURL: "https://nebo-topup-default-rtdb.firebaseio.com",
+  projectId: "nebo-topup",
+  storageBucket: "nebo-topup.firebasestorage.app",
+  messagingSenderId: "42445074362",
+  appId: "1:42445074362:web:43d09db324525873cd7783"
+};
 
-        // Firebase Initialization
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const storage = firebase.storage();
 
-        // Global Variables
         let currentUser = null;
-        let userData = null;
-        let userListener = null;
+        let selectedGameData = {}, selectedPackage = null, selectedPayment = null, selectedAddMoneyPayment = null;
+        let gamesFromDB = [];
+        let paymentMethodsFromDB = [];
+        const authContainer = document.querySelector('.auth-container');
+        const appContainer = document.querySelector('.app-container');
+        const EDIT_WINDOW_MS = 3 * 60 * 1000; 
 
-        // Authentication Functions
-        function showAuthSection() {
-            document.getElementById('auth-section').classList.remove('hidden');
-            document.getElementById('main-app').classList.add('hidden');
+        const themeToggle = document.getElementById('theme-toggle');
+        const currentTheme = localStorage.getItem('theme');
+
+        if (currentTheme) {
+            document.body.classList.add(currentTheme);
+            if (currentTheme === 'dark-mode') {
+                themeToggle.checked = true;
+            }
         }
 
-        function showMainApp() {
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-        }
-
-        function switchToRegister() {
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden');
-        }
-
-        function switchToLogin() {
-            document.getElementById('register-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-        }
-
-        // User Data Management with Firebase
-        async function initializeUserData(user) {
-            const userRef = db.collection('users').doc(user.uid);
-            const userDoc = await userRef.get();
-            
-            if (!userDoc.exists) {
-                // Check for referral
-                const urlParams = new URLSearchParams(window.location.search);
-                const ref = urlParams.get('ref');
-                
-                const newUserData = {
-                    uid: user.uid,
-                    email: user.email,
-                    name: user.displayName || 'ব্যবহারকারী',
-                    balance: 0,
-                    todayEarnings: 0,
-                    totalEarnings: 0,
-                    referralEarnings: 0,
-                    adsCompleted: 0,
-                    tasksCompleted: [],
-                    spinsUsed: 0,
-                    lastSpinDate: null,
-                    referrals: 0,
-                    joinDate: new Date().toISOString(),
-                    referredBy: ref || null
-                };
-                
-                await userRef.set(newUserData);
-                
-                // If referred, give bonus to referrer
-                if (ref) {
-                    const referrerRef = db.collection('users').doc(ref);
-                    const referrerDoc = await referrerRef.get();
-                    
-                    if (referrerDoc.exists) {
-                        await referrerRef.update({
-                            balance: firebase.firestore.FieldValue.increment(5),
-                            referralEarnings: firebase.firestore.FieldValue.increment(5),
-                            referrals: firebase.firestore.FieldValue.increment(1)
-                        });
-                        
-                        // Add notification for referrer
-                        await db.collection('notifications').add({
-                            userId: ref,
-                            title: 'রেফারেল বোনাস!',
-                            message: `আপনার রেফারেল লিঙ্ক ব্যবহার করে একজন নতুন ব্যবহারকারী যোগদান করেছেন। ৳৫.০০ বোনাস পেয়েছেন!`,
-                            timestamp: new Date().toISOString(),
-                            read: false
-                        });
-                    }
-                }
-                
-                return newUserData;
+        themeToggle.addEventListener('change', () => {
+            if (themeToggle.checked) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('theme', 'dark-mode');
             } else {
-                return userDoc.data();
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('theme', 'light-mode');
             }
+        });
+
+        function toggleSettings() {
+            const settingsSection = document.getElementById('settingsSection');
+            settingsSection.style.display = settingsSection.style.display === 'none' ? 'block' : 'none';
         }
 
-        function listenToUserData(uid) {
-            if (userListener) userListener(); // Remove previous listener
-            
-            userListener = db.collection('users').doc(uid).onSnapshot((doc) => {
-                if (doc.exists) {
-                    userData = doc.data();
-                    updateUI();
-                }
-            });
-        }
+        loadBranding();
 
-        // Update UI Functions
-        function updateUI() {
-            if (!userData) return;
-            
-            // Update balance and earnings
-            document.getElementById('wallet-balance').textContent = userData.balance.toFixed(2);
-            document.getElementById('header-balance').textContent = userData.balance.toFixed(2);
-            document.getElementById('today-earnings').textContent = userData.todayEarnings.toFixed(2);
-            document.getElementById('referral-count').textContent = userData.referrals;
-            
-            // Update wallet section
-            document.getElementById('wallet-total').textContent = userData.balance.toFixed(2);
-            document.getElementById('wallet-today').textContent = userData.todayEarnings.toFixed(2);
-            document.getElementById('wallet-referral').textContent = userData.referralEarnings.toFixed(2);
-            
-            // Update profile section
-            document.getElementById('profile-name').textContent = userData.name;
-            document.getElementById('user-name').textContent = userData.name;
-            document.getElementById('join-date').textContent = new Date(userData.joinDate).toLocaleDateString('bn-BD');
-            document.getElementById('profile-tasks').textContent = userData.tasksCompleted.length;
-            document.getElementById('profile-referrals').textContent = userData.referrals;
-            
-            // Update referral link
-            document.getElementById('referral-link').value = window.location.origin + window.location.pathname + '?ref=' + currentUser.uid;
-            
-            // Update spins left
-            const today = new Date().toDateString();
-            if (userData.lastSpinDate !== today) {
-                // Reset spins for new day
-                db.collection('users').doc(currentUser.uid).update({
-                    spinsUsed: 0,
-                    lastSpinDate: today
-                });
-            }
-            document.getElementById('spins-left').textContent = 3 - userData.spinsUsed;
-            
-            // Disable spin button if no spins left
-            if (userData.spinsUsed >= 3) {
-                document.getElementById('spin-wheel-btn').disabled = true;
-                document.getElementById('spin-wheel-btn').classList.add('opacity-50');
-            } else {
-                document.getElementById('spin-wheel-btn').disabled = false;
-                document.getElementById('spin-wheel-btn').classList.remove('opacity-50');
-            }
-            
-            // Disable withdraw button if balance < 50
-            if (userData.balance < 50) {
-                document.getElementById('withdraw-btn').disabled = true;
-                document.getElementById('withdraw-btn').classList.add('opacity-50');
-                document.getElementById('wallet-withdraw-btn').disabled = true;
-                document.getElementById('wallet-withdraw-btn').classList.add('opacity-50');
-            } else {
-                document.getElementById('withdraw-btn').disabled = false;
-                document.getElementById('withdraw-btn').classList.remove('opacity-50');
-                document.getElementById('wallet-withdraw-btn').disabled = false;
-                document.getElementById('wallet-withdraw-btn').classList.remove('opacity-50');
-            }
-            
-            // Update tasks list
-            updateTasksList();
-            
-            // Update recent activities
-            updateRecentActivities();
-            
-            // Update notifications
-            updateNotifications();
-        }
-
-        async function updateTasksList() {
-            const tasksList = document.getElementById('tasks-list');
-            tasksList.innerHTML = '';
-            
-            const tasksSnapshot = await db.collection('tasks').where('status', '==', 'active').get();
-            
-            if (tasksSnapshot.empty) {
-                tasksList.innerHTML = '<p class="text-center text-gray-600 py-4">কোনো টাস্ক নেই</p>';
-                return;
-            }
-            
-            const today = new Date().toDateString();
-            
-            tasksSnapshot.forEach(doc => {
-                const task = doc.data();
-                const isCompleted = userData.tasksCompleted.includes(doc.id + '_' + today);
-                
-                const taskElement = document.createElement('div');
-                taskElement.className = 'task-item';
-                taskElement.innerHTML = `
-                    <div class="flex items-center">
-                        <i class="${task.icon || 'fas fa-tasks'} text-cyan-500 text-2xl mr-4"></i>
-                        <div>
-                            <p class="font-semibold text-gray-800">${task.name}</p>
-                            <p class="text-sm text-green-500">পুরস্কার: ৳${task.reward.toFixed(2)}</p>
-                        </div>
-                    </div>
-                    <button class="task-btn ${isCompleted ? 'bg-gray-400' : 'bg-green-500'} text-white px-4 py-2 rounded-md text-sm font-bold" 
-                            data-id="${doc.id}" data-reward="${task.reward}" ${isCompleted ? 'disabled' : ''}>
-                        ${isCompleted ? 'সম্পন্ন' : 'করুন'}
-                    </button>
-                `;
-                tasksList.appendChild(taskElement);
-            });
-        }
-
-        async function updateRecentActivities() {
-            const activitiesContainer = document.getElementById('recent-activity');
-            activitiesContainer.innerHTML = '';
-            
-            // Fixed query without composite index requirement
-            const activitiesSnapshot = await db.collection('activities')
-                .where('userId', '==', currentUser.uid)
-                .get();
-            
-            if (activitiesSnapshot.empty) {
-                activitiesContainer.innerHTML = '<p class="text-center text-gray-600 py-4">কোনো সাম্প্রতিক কার্যক্রম নেই</p>';
-                return;
-            }
-            
-            // Sort activities by timestamp manually
-            const activities = [];
-            activitiesSnapshot.forEach(doc => {
-                activities.push({ id: doc.id, ...doc.data() });
-            });
-            
-            activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            // Display only the latest 5 activities
-            const latestActivities = activities.slice(0, 5);
-            
-            latestActivities.forEach(activity => {
-                const activityElement = document.createElement('div');
-                activityElement.className = 'flex justify-between items-center p-3 bg-white/70 rounded-lg border border-white/30';
-                activityElement.innerHTML = `
-                    <div>
-                        <p class="font-semibold text-gray-800">${activity.title}</p>
-                        <p class="text-sm text-gray-600">${new Date(activity.timestamp).toLocaleString('bn-BD')}</p>
-                    </div>
-                    <p class="text-green-500 font-bold">+৳${activity.amount.toFixed(2)}</p>
-                `;
-                activitiesContainer.appendChild(activityElement);
-            });
-        }
-
-        async function updateNotifications() {
-            const notificationList = document.getElementById('notification-list');
-            notificationList.innerHTML = '';
-            
-            // Fixed query without composite index requirement
-            const notificationsSnapshot = await db.collection('notifications')
-                .where('userId', '==', currentUser.uid)
-                .get();
-            
-            if (notificationsSnapshot.empty) {
-                notificationList.innerHTML = '<p class="text-center text-gray-600 py-8">কোনো নোটিফিকেশন নেই</p>';
-                return;
-            }
-            
-            // Sort notifications by timestamp manually
-            const notifications = [];
-            notificationsSnapshot.forEach(doc => {
-                notifications.push({ id: doc.id, ...doc.data() });
-            });
-            
-            notifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            // Display only the latest 10 notifications
-            const latestNotifications = notifications.slice(0, 10);
-            
-            let unreadCount = 0;
-            
-            latestNotifications.forEach(notification => {
-                if (!notification.read) unreadCount++;
-                
-                const notificationElement = document.createElement('div');
-                notificationElement.className = `p-4 rounded-lg border ${notification.read ? 'bg-white/70 border-white/30' : 'bg-cyan-50 border-cyan-200'}`;
-                notificationElement.innerHTML = `
-                    <h3 class="font-bold mb-1 text-gray-800">${notification.title}</h3>
-                    <p class="text-sm text-gray-600 mb-2">${notification.message}</p>
-                    <p class="text-xs text-gray-500">${new Date(notification.timestamp).toLocaleString('bn-BD')}</p>
-                `;
-                notificationList.appendChild(notificationElement);
-                
-                // Mark as read when displayed in panel
-                if (!notification.read) {
-                    db.collection('notifications').doc(notification.id).update({ read: true });
-                }
-            });
-            
-            // Update notification badge
-            const badge = document.getElementById('notification-badge');
-            if (unreadCount > 0) {
-                badge.textContent = unreadCount;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
-        async function addActivity(title, amount) {
-            await db.collection('activities').add({
-                userId: currentUser.uid,
-                title,
-                amount,
-                timestamp: new Date().toISOString()
-            });
-        }
-
-        async function addNotification(title, message) {
-            await db.collection('notifications').add({
-                userId: currentUser.uid,
-                title,
-                message,
-                timestamp: new Date().toISOString(),
-                read: false
-            });
-        }
-
-        // Navigation
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Remove active class from all nav items
-                document.querySelectorAll('.nav-item').forEach(nav => {
-                    nav.classList.remove('active');
-                });
-                
-                // Add active class to clicked nav item
-                this.classList.add('active');
-                
-                // Hide all content sections
-                document.querySelectorAll('.content-section').forEach(section => {
-                    section.classList.remove('active');
-                });
-                
-                // Show selected content section
-                const sectionId = this.getAttribute('data-section');
-                document.getElementById(sectionId).classList.add('active');
-            });
-        });
-
-        // Authentication Event Listeners
-        document.getElementById('show-register').addEventListener('click', function(e) {
-            e.preventDefault();
-            switchToRegister();
-        });
-
-        document.getElementById('show-login').addEventListener('click', function(e) {
-            e.preventDefault();
-            switchToLogin();
-        });
-
-        document.getElementById('login-form-element').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            
-            try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                console.log('User logged in:', userCredential.user);
-            } catch (error) {
-                alert('লগ ইন ব্যর্থ: ' + error.message);
-            }
-        });
-
-        document.getElementById('register-form-element').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const name = document.getElementById('register-name').value;
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            
-            try {
-                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                await userCredential.user.updateProfile({ displayName: name });
-                console.log('User registered:', userCredential.user);
-            } catch (error) {
-                alert('রেজিস্ট্রেশন ব্যর্থ: ' + error.message);
-            }
-        });
-
-        // Watch Ad Functionality - FIXED
-        document.getElementById('watch-ad-btn').addEventListener('click', async function() {
-            try {
-                // Get active ad from database
-                const adsSnapshot = await db.collection('ads').where('status', '==', 'active').limit(1).get();
-                
-                if (adsSnapshot.empty) {
-                    alert('বর্তমানে কোনো বিজ্ঞাপন নেই। পরে আবার চেষ্টা করুন।');
-                    return;
-                }
-                
-                const adDoc = adsSnapshot.docs[0];
-                const ad = adDoc.data();
-                
-                // Open ad link in new tab
-                const adWindow = window.open(ad.link, '_blank');
-                
-                // Add reward after a short delay (simulating ad completion)
-                setTimeout(async function() {
-                    await db.collection('users').doc(currentUser.uid).update({
-                        balance: firebase.firestore.FieldValue.increment(ad.reward),
-                        todayEarnings: firebase.firestore.FieldValue.increment(ad.reward),
-                        totalEarnings: firebase.firestore.FieldValue.increment(ad.reward),
-                        adsCompleted: firebase.firestore.FieldValue.increment(1)
-                    });
-                    
-                    // Update ad clicks
-                    await db.collection('ads').doc(adDoc.id).update({
-                        clicks: firebase.firestore.FieldValue.increment(1)
-                    });
-                    
-                    await addActivity('বিজ্ঞাপন দেখেছেন', ad.reward);
-                    await addNotification('বিজ্ঞাপন দেখেছেন', `আপনি একটি বিজ্ঞাপন দেখেছেন এবং ৳${ad.reward.toFixed(2)} পেয়েছেন!`);
-                    
-                    // Show success message
-                    alert(`বিজ্ঞাপন দেখার জন্য আপনাকে ধন্যবাদ! ৳${ad.reward.toFixed(2)} যোগ করা হয়েছে।`);
-                }, 5000); // 5 seconds delay for demo
-            } catch (error) {
-                alert('বিজ্ঞাপন দেখতে সমস্যা হয়েছে: ' + error.message);
-            }
-        });
-
-        // Task Completion
-        document.addEventListener('click', async function(e) {
-            if (e.target.classList.contains('task-btn')) {
-                const taskId = e.target.getAttribute('data-id');
-                const reward = parseFloat(e.target.getAttribute('data-reward'));
-                
-                // Check if task already completed today
-                const today = new Date().toDateString();
-                const taskKey = taskId + '_' + today;
-                
-                if (!userData.tasksCompleted.includes(taskKey)) {
-                    await db.collection('users').doc(currentUser.uid).update({
-                        balance: firebase.firestore.FieldValue.increment(reward),
-                        todayEarnings: firebase.firestore.FieldValue.increment(reward),
-                        totalEarnings: firebase.firestore.FieldValue.increment(reward),
-                        tasksCompleted: firebase.firestore.FieldValue.arrayUnion(taskKey)
-                    });
-                    
-                    // Update task completion count
-                    await db.collection('tasks').doc(taskId).update({
-                        completions: firebase.firestore.FieldValue.increment(1)
-                    });
-                    
-                    await addActivity('টাস্ক সম্পন্ন', reward);
-                    await addNotification('টাস্ক সম্পন্ন', `আপনি একটি টাস্ক সম্পন্ন করেছেন এবং ৳${reward.toFixed(2)} পেয়েছেন!`);
-                    
-                    // Show success message
-                    alert(`টাস্ক সম্পন্ন! ৳${reward.toFixed(2)} যোগ করা হয়েছে।`);
-                } else {
-                    alert('আপনি ইতিমধ্যে আজ এই টাস্কটি সম্পন্ন করেছেন!');
-                }
-            }
-        });
-
-        // Spin Wheel Functionality
-        document.getElementById('spin-wheel-btn').addEventListener('click', async function() {
-            // Check if user has spins left
-            if (userData.spinsUsed >= 3) {
-                alert('আপনি আজকের সব স্পিন ব্যবহার করেছেন! আগামীকাল আবার চেষ্টা করুন।');
-                return;
-            }
-            
-            // Disable button during spin
-            this.disabled = true;
-            
-            // Determine prize
-            const prizes = [0, 0.5, 1, 2, 5, 10];
-            const prizeIndex = Math.floor(Math.random() * prizes.length);
-            const prize = prizes[prizeIndex];
-            
-            // Calculate rotation (full rotations + prize position)
-            const fullRotations = 5; // Number of full rotations
-            const sectionAngle = 60; // Each section is 60 degrees
-            const targetRotation = fullRotations * 360 + (360 - (prizeIndex * sectionAngle)) - (sectionAngle / 2);
-            
-            // Apply rotation
-            const wheel = document.getElementById('wheel');
-            wheel.style.transform = `rotate(${targetRotation}deg)`;
-            
-            // Update user data after spin completes
-            setTimeout(async () => {
-                await db.collection('users').doc(currentUser.uid).update({
-                    balance: firebase.firestore.FieldValue.increment(prize),
-                    todayEarnings: firebase.firestore.FieldValue.increment(prize),
-                    totalEarnings: firebase.firestore.FieldValue.increment(prize),
-                    spinsUsed: firebase.firestore.FieldValue.increment(1)
-                });
-                
-                await addActivity('স্পিন থেকে জয়', prize);
-                await addNotification('স্পিন থেকে জয়', `আপনি স্পিন থেকে ৳${prize.toFixed(2)} জিতেছেন!`);
-                
-                // Show prize alert
-                if (prize > 0) {
-                    alert(`অভিনন্দন! আপনি জিতেছেন: ৳${prize.toFixed(2)}`);
-                } else {
-                    alert('দুর্ভাগ্যবশত আপনি এইবার জিততে পারেননি। আবার চেষ্টা করুন!');
-                }
-                
-                // Re-enable button if spins left
-                if (userData.spinsUsed < 2) { // Already incremented by 1
-                    this.disabled = false;
-                }
-            }, 4000); // Match the transition duration
-        });
-
-        // Withdraw Functionality
-        document.getElementById('withdraw-btn').addEventListener('click', showWithdrawModal);
-        document.getElementById('wallet-withdraw-btn').addEventListener('click', showWithdrawModal);
-
-        function showWithdrawModal() {
-            if (userData.balance < 50) {
-                alert('ন্যূনতম ৳50 উত্তোলন করতে হবে!');
-                return;
-            }
-            
-            document.getElementById('withdraw-amount').value = userData.balance.toFixed(2);
-            document.getElementById('withdraw-modal').style.display = 'flex';
-        }
-
-        document.getElementById('withdraw-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const amount = userData.balance;
-            const name = document.getElementById('withdraw-name').value;
-            const method = document.getElementById('withdraw-method').value;
-            const number = document.getElementById('withdraw-number').value;
-            
-            // Create withdrawal request
-            await db.collection('withdrawals').add({
-                userId: currentUser.uid,
-                userName: userData.name,
-                amount: amount,
-                method: method,
-                number: number,
-                status: 'pending',
-                timestamp: new Date().toISOString()
-            });
-            
-            // Reset user balance
-            await db.collection('users').doc(currentUser.uid).update({
-                balance: 0,
-                todayEarnings: 0
-            });
-            
-            document.getElementById('withdraw-modal').style.display = 'none';
-            await addNotification('উত্তোলনের অনুরোধ', `আপনার ৳${amount.toFixed(2)} উত্তোলনের অনুরোধ পাঠানো হয়েছে। ২৪-৪৮ ঘন্টার মধ্যে পেমেন্ট করা হবে।`);
-            alert('উত্তোলনের অনুরোধ পাঠানো হয়েছে! ২৪-৪৮ ঘন্টার মধ্যে পেমেন্ট করা হবে।');
-        });
-
-        // Referral Functionality
-        document.getElementById('refer-btn').addEventListener('click', function() {
-            const referralLink = window.location.origin + window.location.pathname + '?ref=' + currentUser.uid;
-            
-            // Copy to clipboard
-            navigator.clipboard.writeText(referralLink).then(function() {
-                alert('রেফারেল লিঙ্ক কপি করা হয়েছে! শেয়ার করুন এবং প্রতিটি রেফারেলের জন্য ৳৫ পান।');
-                addNotification('রেফারেল লিঙ্ক', 'আপনার রেফারেল লিঙ্ক কপি করা হয়েছে। শেয়ার করুন এবং আয় করুন!');
-            }, function() {
-                // Fallback for older browsers
-                const tempInput = document.createElement('input');
-                tempInput.value = referralLink;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                document.execCommand('copy');
-                document.body.removeChild(tempInput);
-                alert('রেফারেল লিঙ্ক কপি করা হয়েছে! শেয়ার করুন এবং প্রতিটি রেফারেলের জন্য ৳৫ পান।');
-                addNotification('রেফারেল লিঙ্ক', 'আপনার রেফারেল লিঙ্ক কপি করা হয়েছে। শেয়ার করুন এবং আয় করুন!');
-            });
-        });
-
-        document.getElementById('copy-link').addEventListener('click', function() {
-            const referralLink = document.getElementById('referral-link');
-            referralLink.select();
-            document.execCommand('copy');
-            alert('রেফারেল লিঙ্ক কপি করা হয়েছে!');
-            addNotification('রেফারেল লিঙ্ক', 'আপনার রেফারেল লিঙ্ক কপি করা হয়েছে। শেয়ার করুন এবং আয় করুন!');
-        });
-
-        // Notification Panel
-        document.getElementById('notification-btn').addEventListener('click', function() {
-            document.querySelector('.notification-panel').classList.add('active');
-        });
-
-        document.getElementById('close-notification').addEventListener('click', function() {
-            document.querySelector('.notification-panel').classList.remove('active');
-        });
-
-        // Modal Close Functions
-        document.getElementById('cancel-withdraw').addEventListener('click', function() {
-            document.getElementById('withdraw-modal').style.display = 'none';
-        });
-
-        // Logout Functionality
-        document.getElementById('logout-btn').addEventListener('click', function() {
-            if (confirm('আপনি কি নিশ্চিত যে আপনি লগ আউট করতে চান?')) {
-                auth.signOut();
-            }
-        });
-
-        // Auth State Listener
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 currentUser = user;
-                userData = await initializeUserData(user);
-                listenToUserData(user.uid);
-                showMainApp();
-                
-                // Add welcome notification for new users
-                const notificationsSnapshot = await db.collection('notifications')
-                    .where('userId', '==', user.uid)
-                    .get();
-                
-                if (notificationsSnapshot.empty) {
-                    await addNotification('স্বাগতম!', 'Click2Cash-এ আপনাকে স্বাগতম! অর্থ উপার্জন শুরু করতে বিজ্ঞাপন দেখুন, টাস্ক করুন এবং স্পিন করুন।');
-                }
+                db.collection('users').doc(currentUser.uid).onSnapshot(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        updateProfileDisplay(data.name, data.profileId, data.photoURL);
+                        updateWalletDisplay(data.walletBalance);
+                        document.getElementById('greetingName').innerText = `হাই, ${data.name.split(' ')[0]}`;
+                    }
+                });
+
+                await loadGamesFromFirestore();
+                await loadPaymentMethods();
+
+                authContainer.style.display = 'none';
+                appContainer.style.display = 'block';
+
+                initializeAddMoneyScreen();
+                loadMoneyRequestHistory();
+                loadOrderHistory();
+                loadSlider();
+                initializeNoticeListener();
+                initializeOnlineStatusListener();
+                initializePopupListener();
             } else {
                 currentUser = null;
-                userData = null;
-                if (userListener) userListener();
-                showAuthSection();
+                authContainer.style.display = 'flex';
+                appContainer.style.display = 'none';
             }
         });
 
-        // Initialize Default Tasks
-        async function initializeDefaultTasks() {
-            const tasksSnapshot = await db.collection('tasks').limit(1).get();
+        async function loadPaymentMethods() {
+            try {
+                const snapshot = await db.collection('paymentMethods').get();
+                paymentMethodsFromDB = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                populatePaymentGrids();
+            } catch (error) {
+                console.error("Error fetching payment methods: ", error);
+            }
+        }
+        
+        function populatePaymentGrids() {
+            const topupGrid = document.getElementById('topupPaymentGrid');
+            const addMoneyGrid = document.getElementById('addMoneyPaymentGrid');
+            topupGrid.innerHTML = '';
+            addMoneyGrid.innerHTML = '';
+
+            const walletOptionHtml = `
+                <div class="payment-item" data-payment-id="wallet" data-type="wallet">
+                    <i class="fa-solid fa-wallet" style="font-size: 24px; color: var(--primary-purple); margin-bottom: 5px;"></i>
+                    <span>My Wallet</span>
+                </div>`;
+            topupGrid.innerHTML += walletOptionHtml;
+
+            paymentMethodsFromDB.forEach(method => {
+                const itemHtml = `<div class="payment-item" data-payment-id="${method.id}" data-type="manual">
+                                    <img src="${method.logoUrl}" alt="${method.name}">
+                                    <span>${method.name}</span>
+                                  </div>`;
+                topupGrid.innerHTML += itemHtml; 
+                addMoneyGrid.innerHTML += itemHtml; 
+            });
             
-            if (tasksSnapshot.empty) {
-                const defaultTasks = [
-                    { name: 'ইউটিউব ভিডিও দেখুন', description: 'ইউটিউব ভিডিও দেখুন এবং পুরস্কার পান', reward: 0.5, icon: 'fab fa-youtube', color: 'text-red-500', status: 'active', completions: 0 },
-                    { name: 'ফেসবুক পেজ লাইক করুন', description: 'ফেসবুক পেজ লাইক করুন এবং পুরস্কার পান', reward: 1.0, icon: 'fab fa-facebook', color: 'text-blue-400', status: 'active', completions: 0 },
-                    { name: 'অ্যাপ ইনস্টল করুন', description: 'অ্যাপ ইনস্টল করুন এবং পুরস্কার পান', reward: 3.0, icon: 'fas fa-download', color: 'text-green-400', status: 'active', completions: 0 }
-                ];
-                
-                defaultTasks.forEach(task => {
-                    db.collection('tasks').add(task);
+            initializePaymentSelection();
+        }
+
+        function initializePaymentSelection() {
+            document.querySelectorAll('#topupPaymentGrid .payment-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('#topupPaymentGrid .payment-item.selected').forEach(el => el.classList.remove('selected'));
+                    item.classList.add('selected');
+                    
+                    const type = item.getAttribute('data-type');
+                    const detailsSection = document.getElementById('paymentDetailsSection');
+                    detailsSection.innerHTML = ''; 
+                    detailsSection.style.display = 'block';
+
+                    if (type === 'wallet') {
+                        selectedPayment = { name: 'Wallet', type: 'wallet' };
+                        detailsSection.innerHTML = `
+                            <div class="wallet-balance-info">
+                                <p>প্যাকেজ মূল্য: <strong id="displayPackagePrice">${selectedPackage ? selectedPackage.price : 0} টাকা</strong></p>
+                                <p>আপনার ওয়ালেট থেকে টাকা কাটা হবে।</p>
+                            </div>
+                        `;
+                    } else {
+                        const selectedMethodId = item.dataset.paymentId;
+                        const method = paymentMethodsFromDB.find(m => m.id === selectedMethodId);
+                        selectedPayment = { ...method, type: 'manual' };
+
+                        detailsSection.innerHTML = `
+                            <p style="text-align: center; font-weight: 600; margin-bottom: 10px;">
+                                নিচের নম্বরে টাকা পাঠান: <strong style="color: var(--primary-purple); font-size: 18px;">${method.number}</strong>
+                            </p>
+                            <div class="input-group" style="margin-top: 15px;">
+                                <label for="userPaymentNumber">আপনার পেমেন্ট নম্বর</label>
+                                <input type="tel" id="userPaymentNumber" placeholder="যে নম্বর থেকে টাকা পাঠিয়েছেন">
+                            </div>
+                            <div class="input-group">
+                                <label for="transactionId">ট্রানজেকশন আইডি</label>
+                                <input type="text" id="transactionId" placeholder="টাকা পাঠানোর পর প্রাপ্ত আইডি">
+                            </div>
+                        `;
+                    }
                 });
+            });
+
+            document.querySelectorAll('#addMoneyPaymentGrid .payment-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('#addMoneyPaymentGrid .payment-item.selected').forEach(el => el.classList.remove('selected'));
+                    item.classList.add('selected');
+                    const selectedMethodId = item.dataset.paymentId;
+                    const method = paymentMethodsFromDB.find(m => m.id === selectedMethodId);
+                    if (method) {
+                        selectedAddMoneyPayment = method;
+                        document.getElementById('addMoneyPaymentDetailsSection').style.display = 'block';
+                        document.getElementById('addMoneyAdminPaymentNumber').innerText = method.number;
+                    }
+                });
+            });
+        }
+
+
+        async function loadBranding() {
+            try {
+                const doc = await db.collection('settings').doc('branding').get();
+                if (!doc.exists) return;
+
+                const { appName, profileIconUrl } = doc.data();
+
+                const ids = ['', 'SignUp'];
+                ids.forEach(id => {
+                    const logoText = document.getElementById(`authLogoText${id}`);
+                    if (appName) { 
+                        logoText.innerText = appName;
+                    }
+                });
+                
+                const headerProfileAvatar = document.getElementById('headerProfileAvatar');
+                if (profileIconUrl) {
+                    headerProfileAvatar.src = profileIconUrl;
+                    headerProfileAvatar.style.display = 'block';
+                } else {
+                    headerProfileAvatar.style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error("Error loading branding:", error);
+            }
+        }
+        
+        function updateProfileDisplay(name, id, photoURL) {
+            document.getElementById('profileNameDisplay').innerText = name;
+            document.getElementById('profileIdDisplay').innerText = `ID: ${id}`;
+            
+            const profileScreenAvatar = document.getElementById('profileScreenAvatar');
+            if (photoURL) {
+                profileScreenAvatar.src = photoURL;
+            } else {
+                profileScreenAvatar.src = "https://i.ibb.co/74CkxSP/avatar.png"; 
+            }
+        }
+        
+        function initializeNoticeListener() {
+            const noticeContainer = document.getElementById('noticeCardContainer');
+            const noticeText = document.getElementById('noticeCardText');
+
+            db.collection('settings').doc('notice').onSnapshot(doc => {
+                if (doc.exists && doc.data().text) {
+                    noticeText.innerText = doc.data().text;
+                    noticeContainer.style.display = 'flex';
+                } else {
+                    noticeContainer.style.display = 'none';
+                }
+            });
+        }
+
+        async function handleSignUp() {
+            const name = document.getElementById('signUpName').value;
+            const email = document.getElementById('signUpEmail').value;
+            const password = document.getElementById('signUpPassword').value;
+            if (!name || !email || !password) { alert('অনুগ্রহ করে সকল তথ্য পূরণ করুন।'); return; }
+
+            try {
+                const avatarSettingsDoc = await db.collection('settings').doc('defaultAvatars').get();
+                const defaultMaleAvatar = avatarSettingsDoc.data()?.maleAvatarUrl || "https://i.ibb.co/74CkxSP/avatar.png";
+                const defaultFemaleAvatar = avatarSettingsDoc.data()?.femaleAvatarUrl || "https://i.ibb.co/74CkxSP/avatar.png";
+
+                let assignedAvatarUrl = defaultMaleAvatar;
+                const lowerCaseName = name.toLowerCase();
+                const femaleIdentifiers = ['a', 'i', 'akter', 'begum', 'fatima', 'jannat', 'tasnim', 'nisa', 'khatun'];
+                
+                if (femaleIdentifiers.some(identifier => lowerCaseName.includes(identifier))) {
+                    assignedAvatarUrl = defaultFemaleAvatar;
+                }
+
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                await db.collection('users').doc(user.uid).set({
+                    name: name,
+                    email: email,
+                    profileId: `GS-${Math.random().toString(36).substr(2, 6)}`,
+                    walletBalance: 0,
+                    status: 'active',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    photoURL: assignedAvatarUrl 
+                });
+
+            } catch (error) { 
+                alert('সাইন আপ করতে সমস্যা হয়েছে: ' + error.message); 
             }
         }
 
-        // Initialize Default Ads
-        async function initializeDefaultAds() {
-            const adsSnapshot = await db.collection('ads').limit(1).get();
-            
-            if (adsSnapshot.empty) {
-                const defaultAds = [
-                    { name: 'গুগল বিজ্ঞাপন', link: 'https://www.google.com', reward: 0.10, icon: 'fab fa-google', status: 'active', clicks: 0, createdAt: new Date().toISOString() }
-                ];
-                
-                defaultAds.forEach(ad => {
-                    db.collection('ads').add(ad);
-                });
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            if (!email || !password) { alert('অনুগ্রহ করে ইমেইল ও পাসওয়ার্ড দিন।'); return; }
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const userDoc = await db.collection('users').doc(userCredential.user.uid).get();
+
+                if (userDoc.exists && userDoc.data().status === 'blocked') {
+                    await auth.signOut();
+                    alert('আপনার অ্যাকাউন্টটি ব্লক করা হয়েছে। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।');
+                }
+            } catch (error) {
+                alert('লগইন করতে সমস্যা হয়েছে: ' + error.message);
             }
         }
 
-        // Initialize App
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeDefaultTasks();
-            initializeDefaultAds();
-        });
+        function handleLogout() { auth.signOut(); }
+
+        function toggleAuthScreens(screenId) {
+            document.querySelectorAll('.auth-container .screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        async function processAddMoneyRequest() {
+            const amount = parseFloat(document.getElementById('addMoneyAmount').value);
+            const userPaymentNumber = document.getElementById('addMoneyUserPaymentNumber').value;
+            const transactionId = document.getElementById('addMoneyTransactionId').value;
+
+            if (isNaN(amount) || amount <= 0 || !selectedAddMoneyPayment || !userPaymentNumber || !transactionId) {
+                alert('অনুগ্রহ করে সকল তথ্য সঠিকভাবে পূরণ করুন।');
+                return;
+            }
+
+            const requestData = {
+                userId: currentUser.uid,
+                amount: amount,
+                paymentMethod: selectedAddMoneyPayment.name,
+                adminNumber: selectedAddMoneyPayment.number,
+                userPaymentNumber: userPaymentNumber,
+                transactionId: transactionId,
+                status: 'Pending',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('moneyRequests').add(requestData);
+                showMoneyRequestSuccess(requestData);
+            } catch (error) {
+                alert("রিকোয়েস্ট করতে সমস্যা হয়েছে: " + error.message);
+            }
+        }
+
+        function loadMoneyRequestHistory() {
+            const container = document.getElementById('moneyRequestHistory');
+            if (!container || !currentUser) return;
+
+            // orderBy removed to prevent index error
+            db.collection('moneyRequests').where('userId', '==', currentUser.uid)
+            .onSnapshot(querySnapshot => {
+                if (querySnapshot.empty) {
+                    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-file-invoice-dollar"></i><p>কোনো রিকোয়েস্ট খুঁজে পাওয়া যায়নি।</p></div>`;
+                    return;
+                }
+
+                // Sorting manually in JS
+                let requests = [];
+                querySnapshot.forEach(doc => {
+                    requests.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by date descending
+                requests.sort((a, b) => {
+                     const dateA = a.date ? a.date.seconds : 0;
+                     const dateB = b.date ? b.date.seconds : 0;
+                     return dateB - dateA;
+                });
+
+                let historyHtml = '';
+                requests.forEach(request => {
+                    const requestId = request.id;
+                    const requestDate = request.date ? request.date.toDate() : new Date();
+                    const isEditable = (new Date() - requestDate) < EDIT_WINDOW_MS && request.status === 'Pending';
+
+                    let buttons = '';
+                    if (request.status === 'Pending') {
+                        buttons = `<div class="action-buttons">
+                                ${isEditable ? `<button class="btn btn-secondary" onclick="editMoneyRequest('${requestId}')">এডিট</button>` : ''}
+                                <button class="btn btn-danger" onclick="cancelMoneyRequest('${requestId}')">মুছে ফেলুন</button>
+                            </div>`;
+                    }
+
+                    historyHtml += `<div class="topup-section" style="margin-bottom: 10px;">
+                        <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 8px;">
+                            <span>৳ ${request.amount}</span>
+                            <span class="status-badge status-${request.status}">${request.status}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 8px;"><span>পেমেন্ট:</span><strong>${request.paymentMethod}</strong></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 8px;"><span>নম্বর:</span><strong>${request.userPaymentNumber}</strong></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 8px;"><span>ট্রানজেকশন আইডি:</span><strong>${request.transactionId}</strong></div>
+                        <div style="display:flex; justify-content:space-between;"><span>তারিখ:</span><strong>${requestDate.toLocaleString('bn-BD')}</strong></div>
+                        ${buttons}
+                    </div>`;
+                });
+                container.innerHTML = historyHtml;
+            }, error => {
+                console.error("Error loading money request history: ", error);
+                if (error.code !== 'failed-precondition') {
+                     container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><p>হিস্ট্রি লোড করা যায়নি।</p></div>`;
+                }
+            });
+        }
+
+        async function processOrder() {
+            const playerId = document.getElementById('playerId').value;
+            
+            if (!playerId) { alert('দয়া করে প্লেয়ার আইডি দিন।'); return; }
+            if (!selectedPackage) { alert('দয়া করে একটি প্যাকেজ সিলেক্ট করুন।'); return; }
+            if (!selectedPayment) { alert('দয়া করে পেমেন্ট মেথড সিলেক্ট করুন।'); return; }
+
+            let orderData = {
+                userId: currentUser.uid,
+                game: selectedGameData.name,
+                package: selectedPackage.amount,
+                price: parseFloat(selectedPackage.price),
+                playerId: playerId,
+                paymentMethod: selectedPayment.name,
+                status: 'Pending',
+                date: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                if (selectedPayment.type === 'wallet') {
+                    const userRef = db.collection('users').doc(currentUser.uid);
+
+                    await db.runTransaction(async (transaction) => {
+                        const userDoc = await transaction.get(userRef);
+                        if (!userDoc.exists) { throw "User does not exist!"; }
+
+                        const userData = userDoc.data();
+                        const currentBalance = parseFloat(userData.walletBalance) || 0;
+                        const packagePrice = parseFloat(selectedPackage.price);
+
+                        if (currentBalance < packagePrice) {
+                            throw "আপনার ওয়ালেটে পর্যাপ্ত ব্যালেন্স নেই। দয়া করে 'Add Money' করুন।";
+                        }
+
+                        const newBalance = currentBalance - packagePrice;
+                        transaction.update(userRef, { walletBalance: newBalance });
+
+                        const newOrderRef = db.collection('orders').doc();
+                        orderData.transactionId = 'WALLET_PAY';
+                        orderData.userPaymentNumber = 'N/A';
+                        orderData.adminNumber = 'N/A';
+                        
+                        transaction.set(newOrderRef, orderData);
+                    });
+
+                    alert('অর্ডার সফল হয়েছে! ওয়ালেট থেকে টাকা কাটা হয়েছে।');
+                    showOrderDetails(orderData);
+
+                } else {
+                    const userPaymentNumber = document.getElementById('userPaymentNumber').value;
+                    const transactionId = document.getElementById('transactionId').value;
+
+                    if (!userPaymentNumber || !transactionId) {
+                        alert('দয়া করে পেমেন্ট নম্বর এবং ট্রানজেকশন আইডি দিন।'); return;
+                    }
+
+                    orderData.adminNumber = selectedPayment.number;
+                    orderData.userPaymentNumber = userPaymentNumber;
+                    orderData.transactionId = transactionId;
+
+                    await db.collection('orders').add(orderData);
+                    showOrderDetails(orderData);
+                }
+
+            } catch (error) {
+                if (typeof error === 'string') {
+                    alert(error);
+                } else {
+                    console.error(error);
+                    alert("অর্ডার করতে সমস্যা হয়েছে: " + error.message);
+                }
+            }
+        }
+
+        function loadOrderHistory() {
+            const container = document.getElementById('orderHistoryContainer');
+            if (!container || !currentUser) return;
+
+            // orderBy removed to prevent index error
+            db.collection('orders').where('userId', '==', currentUser.uid)
+            .onSnapshot(querySnapshot => {
+                if (querySnapshot.empty) {
+                    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-receipt"></i><p>কোনো অর্ডার পাওয়া যায়নি।</p></div>`;
+                    return;
+                }
+
+                // Sorting manually in JS
+                let orders = [];
+                querySnapshot.forEach(doc => {
+                    orders.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by date descending
+                orders.sort((a, b) => {
+                     const dateA = a.date ? a.date.seconds : 0;
+                     const dateB = b.date ? b.date.seconds : 0;
+                     return dateB - dateA;
+                });
+
+                let historyHtml = '';
+                orders.forEach(order => {
+                    const orderId = order.id;
+                    const orderDate = order.date ? order.date.toDate() : new Date();
+                    const isEditable = (new Date() - orderDate) < EDIT_WINDOW_MS && order.status === 'Pending';
+
+                    let buttons = '';
+                    if (order.status === 'Pending') {
+                        buttons = `<div class="action-buttons">
+                                ${isEditable ? `<button class="btn btn-secondary" onclick="editOrder('${orderId}')">এডিট</button>` : ''}
+                                <button class="btn btn-danger" onclick="cancelOrder('${orderId}')">মুছে ফেলুন</button>
+                            </div>`;
+                    }
+
+                    historyHtml += `<div class="topup-section">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                            <span>গেম: <strong>${order.game}</strong></span>
+                            <span class="status-badge status-${order.status}">${order.status}</span>
+                        </div>
+                        <p style="display:flex; justify-content:space-between; margin-bottom: 8px;"><span>প্যাকেজ:</span><strong>${order.package}</strong></p>
+                        <p style="display:flex; justify-content:space-between; margin-bottom: 8px;"><span>প্লেয়ার আইডি:</span><strong>${order.playerId}</strong></p>
+                         <p style="display:flex; justify-content:space-between; margin-bottom: 8px;"><span>ট্রানজেকশন আইডি:</span><strong>${order.transactionId || 'N/A'}</strong></p>
+                        <p style="display:flex; justify-content:space-between;"><span>তারিখ:</span><strong>${orderDate.toLocaleString('bn-BD')}</strong></p>
+                        ${buttons}
+                    </div>`;
+                });
+                 container.innerHTML = historyHtml;
+            }, error => {
+                console.error("Error loading order history: ", error);
+                if (error.code !== 'failed-precondition') {
+                    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-circle-exclamation"></i><p>হিস্ট্রি লোড করা যায়নি।</p></div>`;
+                }
+            });
+        }
+
+        async function cancelOrder(orderId) {
+            if (!confirm('আপনি কি নিশ্চিতভাবে এই অর্ডারটি মুছে ফেলতে চান? যদি ওয়ালেট দিয়ে পেমেন্ট করে থাকেন, তবে টাকা ফেরত দেওয়া হবে।')) {
+                return;
+            }
+
+            try {
+                await db.runTransaction(async (transaction) => {
+                    const orderRef = db.collection('orders').doc(orderId);
+                    const orderDoc = await transaction.get(orderRef);
+
+                    if (!orderDoc.exists) {
+                        throw "অর্ডারটি পাওয়া যায়নি।";
+                    }
+
+                    const orderData = orderDoc.data();
+
+                    // স্ট্যাটাস চেক
+                    if (orderData.status !== 'Pending') {
+                        throw "এই অর্ডারটি এখন আর ক্যানসেল করা যাবে না।";
+                    }
+
+                    // ওয়ালেট পেমেন্ট চেক (transactionId বা paymentMethod দিয়ে)
+                    if (orderData.transactionId === 'WALLET_PAY' || orderData.paymentMethod === 'Wallet') {
+                        const userRef = db.collection('users').doc(orderData.userId);
+                        const userDoc = await transaction.get(userRef);
+
+                        if (userDoc.exists) {
+                            const currentBalance = parseFloat(userDoc.data().walletBalance) || 0;
+                            const refundAmount = parseFloat(orderData.price);
+                            
+                            // ব্যালেন্স রিফান্ড
+                            transaction.update(userRef, { 
+                                walletBalance: currentBalance + refundAmount 
+                            });
+                        }
+                    }
+
+                    // অর্ডার ডিলিট
+                    transaction.delete(orderRef);
+                });
+
+                alert('অর্ডারটি সফলভাবে বাতিল করা হয়েছে এবং প্রযোজ্য ক্ষেত্রে ওয়ালেটে টাকা ফেরত দেওয়া হয়েছে।');
+
+            } catch (error) {
+                console.error("Cancellation Error: ", error);
+                alert('সমস্যা হয়েছে: ' + (error.message || error));
+            }
+        }
+
+        async function editOrder(orderId) {
+            try {
+                const doc = await db.collection('orders').doc(orderId).get();
+                if (!doc.exists) { alert('অর্ডার পাওয়া যায়নি!'); return; }
+                const order = doc.data();
+                const newPlayerId = prompt('আপনার নতুন প্লেয়ার আইডি দিন:', order.playerId);
+                const newTransactionId = prompt('নতুন ট্রানজেকশন আইডি দিন:', order.transactionId);
+
+                const updates = {};
+                 if (newPlayerId && newPlayerId.trim() !== '' && newPlayerId !== order.playerId) {
+                    updates.playerId = newPlayerId;
+                }
+                if (newTransactionId && newTransactionId.trim() !== '' && newTransactionId !== order.transactionId) {
+                    updates.transactionId = newTransactionId;
+                }
+                if (Object.keys(updates).length > 0) {
+                    await db.collection('orders').doc(orderId).update(updates);
+                    alert('অর্ডার সফলভাবে আপডেট করা হয়েছে!');
+                }
+            } catch (e) { alert('আপডেট করতে সমস্যা হয়েছে: ' + e.message); }
+        }
+
+        function cancelMoneyRequest(requestId) {
+            if (confirm('আপনি কি নিশ্চিতভাবে এই রিকোয়েস্টটি মুছে ফেলতে চান?')) {
+                db.collection('moneyRequests').doc(requestId).delete()
+                  .then(() => alert('রিকোয়েস্টটি সফলভাবে মুছে ফেলা হয়েছে।'))
+                  .catch(e => alert('সমস্যা হয়েছে: ' + e.message));
+            }
+        }
+
+        async function editMoneyRequest(requestId) {
+            try {
+                const doc = await db.collection('moneyRequests').doc(requestId).get();
+                if (!doc.exists) { alert('রিকোয়েস্ট পাওয়া যায়নি!'); return; }
+                const request = doc.data();
+                const newAmount = prompt('নতুন অ্যামাউন্ট লিখুন:', request.amount);
+                const newNumber = prompt('নতুন পেমেন্ট নম্বর দিন:', request.userPaymentNumber);
+                const newTransactionId = prompt('নতুন ট্রানজেকশন আইডি দিন:', request.transactionId);
+
+                const updates = {};
+                if (newAmount && parseFloat(newAmount) > 0 && parseFloat(newAmount) !== request.amount) {
+                    updates.amount = parseFloat(newAmount);
+                }
+                if (newNumber && newNumber.trim() !== '' && newNumber !== request.userPaymentNumber) {
+                    updates.userPaymentNumber = newNumber;
+                }
+                 if (newTransactionId && newTransactionId.trim() !== '' && newTransactionId !== request.transactionId) {
+                    updates.transactionId = newTransactionId;
+                }
+                if (Object.keys(updates).length > 0) {
+                    await db.collection('moneyRequests').doc(requestId).update(updates);
+                    alert('রিকোয়েস্ট সফলভাবে আপডেট করা হয়েছে!');
+                }
+            } catch (e) { alert('আপডেট করতে সমস্যা হয়েছে: ' + e.message); }
+        }
+
+        function showScreen(screenId, navElement) {
+            document.querySelectorAll('.app-container .screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (navElement) {
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                navElement.classList.add('active');
+            }
+        }
+
+        function updateWalletDisplay(balance) {
+            const formattedBalance = `৳ ${parseFloat(balance || 0).toFixed(2)}`;
+            document.getElementById('profileWalletBalance').innerText = formattedBalance;
+        }
+
+        function showOrderHistoryScreen(navElement) { showScreen('orderHistoryScreen', navElement); }
+
+        function showOrderDetails(orderData) {
+            const container = document.getElementById('orderDetailsContainer');
+            container.innerHTML = `<div class="details-card">
+                    <div class="icon"><i class="fa-solid fa-check-circle"></i></div>
+                    <h2>অর্ডারটি সফল হয়েছে!</h2>
+                    <p>আপনার অর্ডারটি প্রক্রিয়া করা হচ্ছে। বিস্তারিত নিচে দেখুন।</p>
+                    <div class="summary">
+                        <div class="summary-item"><span>গেম:</span><strong>${orderData.game}</strong></div>
+                        <div class="summary-item"><span>প্যাকেজ:</span><strong>${orderData.package}</strong></div>
+                        <div class="summary-item"><span>প্লেয়ার আইডি:</span><strong>${orderData.playerId}</strong></div>
+                        <div class="summary-item"><span>মূল্য:</span><strong>${orderData.price}</strong></div>
+                    </div>
+                </div>`;
+            showScreen('orderDetailsScreen');
+        }
+
+        function showMoneyRequestSuccess(requestData) {
+            const container = document.getElementById('moneyRequestSuccessContainer');
+            container.innerHTML = `<div class="details-card">
+                    <div class="icon"><i class="fa-solid fa-paper-plane"></i></div>
+                    <h2>রিকোয়েস্ট পাঠানো হয়েছে!</h2>
+                    <p>আপনার রিকোয়েস্টটি পর্যালোচনার জন্য পাঠানো হয়েছে।</p>
+                    <div class="summary">
+                        <div class="summary-item"><span>অ্যামাউন্ট:</span><strong>৳ ${requestData.amount.toFixed(2)}</strong></div>
+                        <div class="summary-item"><span>পেমেন্ট মেথড:</span><strong>${requestData.paymentMethod}</strong></div>
+                        <div class="summary-item"><span>আপনার নম্বর:</span><strong>${requestData.userPaymentNumber}</strong></div>
+                        <div class="summary-item"><span>ট্রানজেকশন আইডি:</span><strong>${requestData.transactionId}</strong></div>
+                    </div>
+                </div>`;
+            showScreen('moneyRequestSuccessScreen');
+        }
+
+        function initializeAddMoneyScreen() {
+            document.getElementById('addMoneyAmount').value = '';
+            document.getElementById('addMoneyUserPaymentNumber').value = '';
+            document.getElementById('addMoneyTransactionId').value = '';
+            document.getElementById('addMoneyPaymentDetailsSection').style.display = 'none';
+            selectedAddMoneyPayment = null;
+            document.querySelectorAll('#addMoneyPaymentGrid .payment-item.selected').forEach(el => el.classList.remove('selected'));
+        }
+
+        async function loadGamesFromFirestore() {
+            try {
+                const snapshot = await db.collection('games').where('status', '==', 'active').get();
+                gamesFromDB = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                populateGameGrid();
+            } catch (error) { console.error("Error fetching games: ", error); }
+        }
+
+        function populateGameGrid() {
+            const grid = document.querySelector('#homeScreen .game-grid');
+            grid.innerHTML = '';
+            gamesFromDB.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.innerHTML = `<div class="icon-wrapper"><img src="${game.logo}" alt="${game.name}"></div>
+                                  <div class="game-info-container">
+                                      <div class="game-name">${game.name}</div>
+                                      <div class="game-info">টপ-আপ করুন</div>
+                                  </div>`;
+                card.onclick = () => selectGame(game);
+                grid.appendChild(card);
+            });
+        }
+
+        function selectGame(game) {
+            selectedGameData = game;
+            document.getElementById('gameTitle').innerText = game.name;
+            document.getElementById('gameBanner').src = game.banner;
+
+            const packageGrid = document.getElementById('packageGrid');
+            packageGrid.innerHTML = '';
+
+            if (Array.isArray(game.packages)) {
+                game.packages.forEach(pkg => {
+                    const item = document.createElement('div');
+                    item.className = 'package-item';
+                    item.innerHTML = `<div class="amount">${pkg.amount}</div><div class="price">${pkg.price}</div>`;
+                    item.onclick = () => {
+                        document.querySelectorAll('.package-item.selected').forEach(el => el.classList.remove('selected'));
+                        item.classList.add('selected');
+                        selectedPackage = pkg;
+                        
+                        // ডায়নামিক প্রাইস আপডেট
+                        const priceDisplay = document.getElementById('displayPackagePrice');
+                        if(priceDisplay) {
+                             priceDisplay.innerText = `${pkg.price} টাকা`;
+                        }
+                    };
+                    packageGrid.appendChild(item);
+                });
+            }
+
+            resetTopupSelections();
+            showScreen('topupScreen');
+        }
+
+        function resetTopupSelections() {
+            const playerIdInput = document.getElementById('playerId');
+            if (playerIdInput) playerIdInput.value = '';
+
+            const userPaymentNumber = document.getElementById('userPaymentNumber');
+            if (userPaymentNumber) userPaymentNumber.value = '';
+
+            const transactionId = document.getElementById('transactionId');
+            if (transactionId) transactionId.value = '';
+
+            const paymentDetailsSection = document.getElementById('paymentDetailsSection');
+            if (paymentDetailsSection) {
+                paymentDetailsSection.style.display = 'none';
+                paymentDetailsSection.innerHTML = ''; 
+            }
+
+            selectedPackage = null;
+            selectedPayment = null;
+            document.querySelectorAll('.package-item.selected, .payment-item.selected').forEach(el => el.classList.remove('selected'));
+        }
+
+        const slider = document.querySelector('.slider');
+        let currentSlide = 0, slideInterval;
+
+        function updateSliderPosition() {
+            if (!slider) return;
+            slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+        function nextSlide() {
+            const totalSlides = slider.children.length;
+            if (totalSlides === 0) return;
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateSliderPosition();
+        }
+
+        async function loadSlider() {
+            try {
+                const doc = await db.collection('settings').doc('slider').get();
+                slider.innerHTML = '';
+                if (doc.exists && doc.data().imageUrls) {
+                    const imageUrls = doc.data().imageUrls;
+                    imageUrls.forEach(url => {
+                        if(url){
+                           const slideDiv = document.createElement('div');
+                           slideDiv.className = 'slide';
+                           slideDiv.innerHTML = `<img src="${url}" alt="Promo Banner">`;
+                           slider.appendChild(slideDiv);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Error loading slider images:", error);
+            } finally {
+                clearInterval(slideInterval);
+                if (slider.children.length > 1) {
+                    slideInterval = setInterval(nextSlide, 3000);
+                }
+            }
+        }
+        
+        function formatMessage(text) {
+            let formattedText = text;
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const emailRegex = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
+            const phoneRegex = /\b(\+?88)?01[3-9][0-9]{8}\b/g;
+
+            formattedText = formattedText.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+            formattedText = formattedText.replace(emailRegex, '<a href="mailto:$&">$&</a>');
+            formattedText = formattedText.replace(phoneRegex, '<a href="tel:$&">$&</a>');
+            
+            return formattedText;
+        }
+
+        // Support Chat Logic
+        const supportModal = document.getElementById('supportModal');
+        const supportBtn = document.getElementById('supportBtn');
+        const supportCloseBtn = document.getElementById('supportCloseBtn');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        const supportMessageInput = document.getElementById('supportMessageInput');
+        const supportChatBody = document.getElementById('supportChatBody');
+        let unsubscribeSupportChat;
+
+        supportBtn.onclick = () => {
+            supportModal.style.display = "flex";
+            if (unsubscribeSupportChat) unsubscribeSupportChat(); 
+
+            // orderBy removed from query
+            unsubscribeSupportChat = db.collection('supportMessages')
+                .where('userId', '==', currentUser.uid)
+                .onSnapshot(snapshot => {
+                    supportChatBody.innerHTML = '';
+                    if (snapshot.empty) {
+                        supportChatBody.innerHTML = '<p style="text-align:center; color: var(--secondary-text-color);">আপনার প্রশ্ন এখানে লিখুন</p>';
+                    }
+                    
+                    // Client-side sorting
+                    let messages = [];
+                    snapshot.forEach(doc => messages.push(doc.data()));
+                    
+                    // Sort by timestamp ascending (Oldest first)
+                    messages.sort((a, b) => {
+                         const timeA = a.timestamp ? a.timestamp.seconds : 0;
+                         const timeB = b.timestamp ? b.timestamp.seconds : 0;
+                         return timeA - timeB;
+                    });
+
+                    messages.forEach(messageData => {
+                        const messageDiv = document.createElement('div');
+                        const container = document.createElement('div');
+                        container.className = 'message-container';
+                        messageDiv.className = `message ${messageData.sender}`;
+                        messageDiv.innerHTML = formatMessage(messageData.message);
+                        container.appendChild(messageDiv);
+                        supportChatBody.appendChild(container);
+                    });
+                    supportChatBody.scrollTop = supportChatBody.scrollHeight;
+                });
+        };
+
+        supportCloseBtn.onclick = () => {
+            supportModal.style.display = "none";
+            if (unsubscribeSupportChat) {
+                unsubscribeSupportChat();
+                unsubscribeSupportChat = null;
+            }
+        };
+
+        sendMessageBtn.onclick = async () => {
+            const message = supportMessageInput.value.trim();
+            if (message === '') return;
+            supportMessageInput.value = '';
+
+            await db.collection('supportMessages').add({
+                userId: currentUser.uid,
+                userName: currentUser.displayName || currentUser.email,
+                message: message,
+                sender: 'user',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        };
+
+        // Dynamic Popup Modal
+        const dynamicPopup = document.getElementById('dynamicPopup');
+        const popupCloseBtn = document.getElementById('popupCloseBtn');
+
+        function initializePopupListener() {
+            db.collection('settings').doc('popup').onSnapshot(doc => {
+                const popupViewed = sessionStorage.getItem('popupViewed');
+                if (doc.exists && doc.data().isActive && !popupViewed) {
+                    const data = doc.data();
+                    document.getElementById('popupTitle').textContent = data.title || '';
+                    document.getElementById('popupMessage').textContent = data.message || '';
+                    const popupImage = document.getElementById('popupImage');
+                    if (data.imageUrl) {
+                        popupImage.src = data.imageUrl;
+                        popupImage.style.display = 'block';
+                    } else {
+                        popupImage.style.display = 'none';
+                    }
+                    dynamicPopup.style.display = 'flex';
+                }
+            });
+        }
+        popupCloseBtn.onclick = () => {
+            dynamicPopup.style.display = 'none';
+            sessionStorage.setItem('popupViewed', 'true');
+        };
+        
+        // Online Status Listener
+        function initializeOnlineStatusListener() {
+            const statusIndicator = document.getElementById('onlineStatus');
+            const statusText = document.getElementById('onlineStatusText');
+
+            db.collection('settings').doc('onlineStatus').onSnapshot(doc => {
+                if (doc.exists && doc.data().isOnline) {
+                    statusIndicator.classList.remove('offline');
+                    statusIndicator.classList.add('online');
+                    statusText.innerText = 'Online';
+                } else {
+                    statusIndicator.classList.remove('online');
+                    statusIndicator.classList.add('offline');
+                    statusText.innerText = 'Offline';
+                }
+            });
+        }
     </script>
 </body>
 </html>
